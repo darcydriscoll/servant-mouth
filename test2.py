@@ -1,149 +1,22 @@
+# Test 2
+# Prototyping core game features.
+# By snarlinger (@gmail.com)
+# Released under an MIT license
+
 import sys, pygame, pygame.freetype
+import xml.etree.ElementTree as ET
 from pygame.locals import *
 from os import path
 
+import string_manip as sm
+from ui import *
+
 pygame.init()
-
-class Button(pygame.sprite.Sprite):
-    """UI Button"""
-    # Attributes
-    active = True
-    hover = False
-    pressed = False
-    executed = False
-    #         (active, inactive, hover, pressed)
-    colours = ((0,0,0),(0,0,0),(0,0,0),(0,0,0))
-    group = None
-    # Text
-    font_size = 14
-    font = pygame.freetype.SysFont(None,font_size)
-    font.pad = True
-    line_height = font.get_sized_ascender(font_size) + abs(font.get_sized_descender(font_size))
-    text = ''
-    text_sprites = None # Group
-    
-    def __init__(self, wh, dest, text, colours, group):
-        """Initialisation method for Button."""
-        pygame.sprite.Sprite.__init__(self)
-        group.add(self)
-        self.group = group
-        # Creating surface
-        self.image = pygame.Surface(wh)
-        self.colours = colours
-        self.image.fill(colours[0])
-        self.text_sprites = pygame.sprite.Group()
-        self.create_text_sprites(text,wh,dest)
-        self.text_blit()
-        # Creating rectangle
-        self.rect = self.image.get_rect()
-        self.rect.topleft = dest
-    
-    def text_blit(self):
-        """Blits text from text_sprites to the Button surface"""
-        for spr in self.text_sprites:
-            self.image.blit(spr.image,spr.rect)
-    
-    def create_text_sprites(self, text, wh, dest):
-        """Create the text sprites and groups them in text_sprites"""
-        self.text = text
-        max_width = wh[0]
-        wrap = text_wrap(self.font,self.text,max_width)
-        line = 0
-        while True:
-            # Create surface and rectangle
-            rend = self.font.render(wrap[0])
-            rend[1].centerx = max_width / 2
-            rend[1].top = line * self.line_height
-            # Create sprite
-            spr = pygame.sprite.Sprite()
-            spr.image = rend[0].convert_alpha()
-            spr.rect = rend[1]
-            # Add sprite to group
-            self.text_sprites.add(spr)
-            # Next iteration?
-            tail = wrap[1]
-            if tail == '': break
-            wrap = text_wrap(self.font,tail,max_width)
-            line += 1
-        y_offset = (wh[1] - self.line_height * (line + 1)) / 2
-        for spr in self.text_sprites:
-            spr.rect.top += y_offset
-    
-    def update_states(self, mouse_states, mouse_pos):
-        """Updates the current state of the Button."""
-        if self.rect.collidepoint(mouse_pos):
-            self.hover = True
-            if self.group.selected is self:
-                if mouse_states[0] or mouse_states[2]:
-                    self.pressed = True
-                else:
-                    # if executing this button
-                    if self.pressed:
-                        self.executed = True
-                    self.pressed = False
-        else:
-            self.hover = False
-            self.pressed = False
-            if self.group.selected is self:
-                if not mouse_states[0] and not mouse_states[2]:
-                    self.group.selected = None
-        
-    def update(self, mouse_states, mouse_pos):
-        """General update function for Button."""
-        self.update_states(mouse_states, mouse_pos)
-        colour = None
-        if self.executed:
-            colour = (255,255,255)
-        elif self.active:
-            if not self.hover and not self.pressed:
-                colour = self.colours[0]
-            elif self.pressed:
-                colour = self.colours[3]
-            else:
-                colour = self.colours[2]
-        else:
-            colour = self.colours[1]
-        # Updating surface
-        self.image.fill(colour)
-        self.text_blit()
-
-class GroupButton(pygame.sprite.Group):
-    """Group of UI Buttons"""
-    # Attributes
-    selected = None
 
 def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
-
-def text_wrap(font, text, total_width):
-    """Returns the text that can fit in a given width and the text that can't."""
     
-    def concatenate(lst):
-        """Joins all strings in a given list into a string of words."""
-        str = ''
-        for x in lst:
-            str += x + ' '
-        return str[:-1]
-    size = font.size
-    words = text.split()
-    space = font.get_rect(' ').width
-    current_width = 0
-    concat = ''
-    
-    for i in range(len(words)):
-        word = words[i]
-        if font.get_rect(word).width >= total_width:
-            raise ValueError("Word too large", words, words[i])
-        if i > 0:
-            current_width += space
-            concat += ' '
-        current_width += font.get_rect(word).width
-        if current_width > total_width:
-            return concat[:-1], (concatenate(words[i:]))
-        concat += word
-    return concat, ''
-
 def blit_text(line, lines, i, screen, phrase, millis, speed):
     # COULD PROBABLY CHANGE THIS SO IT COPIES RECTANGLE INSTEAD OF CREATING NEW ONE???
     current_millis = pygame.time.get_ticks()
@@ -224,8 +97,14 @@ def main():
     x1 = w / 4 - x_offset; x2 = w / 2 + w / 4 - x_offset
     y1 = y_offset; y2 = h - y_offset
     pointlist = [(x1,y1),(x2,y1),(x2,y2),(x1,y2)]
+    # Finding text
+    tree = ET.parse(path.join('dialogue','test.xml'))
+    root = tree.getroot()
+    para = root.find('para')
+    text = para.find('text').text
+    print(text)
     # Wrapping text
-    test = 'hello how are you today i hope you are well'
+    test = text
     test_phrase = (18,29)
     phrase = pygame.sprite.Group()
     lines = []
@@ -233,7 +112,7 @@ def main():
     left = x1 + left_offset
     top_offset = 5
     max_width = x2 - x1 - left_offset
-    text = text_wrap(f,test,max_width)
+    text = sm.text_wrap(f,test,max_width)
     text_height = f.get_rect(test).height
     line = 0
     i = 0
@@ -258,7 +137,7 @@ def main():
         lines.append(chs)
         tail = text[1]
         if tail == '': break
-        text = text_wrap(f,tail,max_width)
+        text = sm.text_wrap(f,tail,max_width)
         line += 1
     # Main loop
     i = 1
