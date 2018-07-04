@@ -8,18 +8,53 @@ import xml.etree.ElementTree as ET
 from pygame.locals import *
 from os import path
 
-import string_manip as sm
-from ui import *
+import string_manip
+import ui
 
 pygame.init()
 
 def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
-    
-def blit_text(line, lines, i, screen, phrase, millis, speed):
+
+def blit_text(line, char_group, i, screen, phrase, millis, speed):
     # COULD PROBABLY CHANGE THIS SO IT COPIES RECTANGLE INSTEAD OF CREATING NEW ONE???
+    chars = char_group.sprites()
     current_millis = pygame.time.get_ticks()
+    
+    if i < len(char_group):
+        # More characters to animate
+        if (current_millis - millis) >= speed:
+            # Enough time has passed to animate
+            while not chars[i].should_anim:
+                i += 1
+            ch = chars[i]
+            screen.blit(ch.image,ch.rect)
+            i += 1
+            millis = current_millis
+    else:
+        # No more characters to animate - Phrase selection
+        coord = pygame.mouse.get_pos()
+        for spr in phrase:
+            rect = spr.rect
+            top_left = rect.topleft
+            bottom_right = rect.bottomright
+            if coord[0] >= top_left[0] and coord[0] <= bottom_right[0]:
+                if coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
+                    for spr in phrase:
+                        rect = spr.rect
+                        top_left = rect.topleft
+                        bottom_right = rect.bottomright
+                        highlight = pygame.Surface((bottom_right[0] - top_left[0],bottom_right[1] - top_left[1]))
+                        highlight.fill((0,0,255))
+                        screen.blit(highlight,highlight.get_rect(topleft=top_left))
+                    break
+    
+    for ch in chars[:i]:
+        # prev. characters
+        screen.blit(ch.image,ch.rect)
+    return line, i, screen, millis
+    
     # If line applicable - current line
     if line < len(lines):
         # prev. characters
@@ -101,44 +136,44 @@ def main():
     tree = ET.parse(path.join('dialogue','test.xml'))
     root = tree.getroot()
     para = root.find('para')
-    text = para.find('text').text
-    print(text)
+    text = para.find('text').find('content').text
+    # Setting phrases
+    phrases = []
+    for phrase in para.find('phrases'):
+        attrib_start = phrase.attrib['start']
+        attrib_end = phrase.attrib['end']
+        try:
+            start = int(attrib_start)
+            end = int(attrib_end)
+        except ValueError:
+            print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
+        else:
+            phrases.append((attrib_start,attrib_end))
+    test_phrase = (6,10)
     # Wrapping text
     test = text
-    test_phrase = (18,29)
     phrase = pygame.sprite.Group()
-    lines = []
-    left_offset = 5
-    left = x1 + left_offset
+    left_offset = x1 + 5
     top_offset = 5
-    max_width = x2 - x1 - left_offset
-    text = sm.text_wrap(f,test,max_width)
+    max_width = x2 - left_offset
+    wrap = string_manip.text_wrap(f,test,max_width)
+    print(wrap)
     text_height = f.get_rect(test).height
-    line = 0
-    i = 0
-    while True:
-        chs = []
+    char_group = pygame.sprite.Group()
+    for line, str in enumerate(wrap):
         count_width = 0
-        for ch in text[0]:
-            if ch == ' ': anim = False
-            else: anim = True
-            rend = f.render(ch,fgcolor=(0,255,0))
-            rend = (rend[0].convert_alpha(),rend[1])
-            rend[1].top = line * line_height + top_offset
-            rend[1].left = count_width + left
-            spr = pygame.sprite.Sprite()
-            spr.image = rend[0]
-            spr.rect = rend[1]
+        top = line * line_height + top_offset
+        for i, ch in enumerate(str):
+            left = count_width + left_offset
             if i >= test_phrase[0] and i <= test_phrase[1]:
-                phrase.add(spr)
-            chs.append((spr,anim))
-            count_width += rend[1].width
-            i += 1
-        lines.append(chs)
-        tail = text[1]
-        if tail == '': break
-        text = sm.text_wrap(f,tail,max_width)
-        line += 1
+                # Placeholder
+                phrase_group = phrase
+            else: phrase_group = None
+            if ch == ' ': should_anim = False
+            else: should_anim = True
+            character = ui.Character((0,255,0),ch,f_size,(top,left),i,line,phrase_group,0,should_anim,True)
+            count_width += character.rect.width
+            char_group.add(character)
     # Main loop
     i = 1
     line = 0
@@ -153,9 +188,9 @@ def main():
     imgR2.topleft = (0,75)
     inv = [((img,imgR),(0,0),img.copy()),((img2,imgR2),(0,75),img2.copy())]
     selected_item = None
-    button_group = GroupButton()
-    test_button = Button((100,130),(200,200),'button man is here',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
-    test_button2 = Button((50,30),(400,250),'button',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
+    button_group = ui.GroupButton()
+    test_button = ui.Button((100,130),(200,200),'button man is here guys everyone crowd around',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
+    test_button2 = ui.Button((50,30),(400,250),'button',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     while True:
         # Event handling
         for e in pygame.event.get():
@@ -188,7 +223,8 @@ def main():
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
         # blit text
         speed = 25
-        line, lines, i, screen, millis = blit_text(line,lines,i,screen,phrase,millis,speed)
+        line, i, screen, millis = blit_text(line,char_group,i,screen,phrase,millis,speed)
+        #char_group.draw(screen)
         # blit inventory
         for item in inv:
             screen.blit(item[0][0],item[0][1])

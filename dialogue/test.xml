@@ -6,12 +6,14 @@
             <phrase start='4' end='6'>
                 <!--was-->
                 <func>
-                    <click>
-                    </click>
                 </func>
             </phrase>
-            <phrase start='22' end='31'/>
+            <phrase start='22' end='31'>
+                <!--normal day-->
+            </phrase>
         </phrases>
-        <text>It was just like any normal day. The sun was shining, the birds were singing, and you were reading an offensively standard lead to the prototype of a bad visual novel. Like, seriously: who do they think they're fooling with this garbage? 'Just like any normal day'? You're not a simpleton. You know -- for a fact, you know -- that the day to be exposed before your rolling eyes will not, in any sense of the word, be normal. Because normally, you enjoy the lead of a story. Because, ooh!: I wonder how this lead will reflect the themes hidden subtextually beneath the forthcoming words! And, ooh!: you can just tell how much time they spent perfecting these few lines! And so, abnormally, you are immediately disinterested. You groan. You sigh. And you close the program, hoping to rid this disappointment from your mind.</text>
+        <text>
+            <content>It was just like any normal day. The sun was shining, the birds were singing, and you were reading an offensively standard lead to the prototype of a bad visual novel. Like, seriously: who do they think they're fooling with this garbage? 'Just like any normal day'? You're not a simpleton. You know -- for a fact, you know -- that the day to be exposed before your rolling eyes will not, in any sense of the word, be normal. Because normally, you enjoy the lead of a story. Because, ooh!: I wonder how this lead will reflect the themes hidden subtextually beneath the forthcoming words! And, ooh!: you can just tell how much time they spent perfecting these few lines! And so, abnormally, you are immediately disinterested. You groan. You sigh. And you close the program, hoping to rid this disappointment from your mind.</content>
+        </text>
     </para>
 </root>
