@@ -160,10 +160,11 @@ def main():
     print(wrap)
     text_height = f.get_rect(test).height
     char_group = pygame.sprite.Group()
+    i = 0
     for line, str in enumerate(wrap):
         count_width = 0
         top = line * line_height + top_offset
-        for i, ch in enumerate(str):
+        for ch in str:
             left = count_width + left_offset
             if i >= test_phrase[0] and i <= test_phrase[1]:
                 # Placeholder
@@ -174,6 +175,7 @@ def main():
             character = ui.Character((0,255,0),ch,f_size,(top,left),i,line,phrase_group,0,should_anim,True)
             count_width += character.rect.width
             char_group.add(character)
+            i += 1
     # Main loop
     i = 1
     line = 0
@@ -222,9 +224,8 @@ def main():
         # blit window
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
         # blit text
-        speed = 25
+        speed = 1
         line, i, screen, millis = blit_text(line,char_group,i,screen,phrase,millis,speed)
-        #char_group.draw(screen)
         # blit inventory
         for item in inv:
             screen.blit(item[0][0],item[0][1])
