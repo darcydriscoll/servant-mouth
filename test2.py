@@ -17,83 +17,6 @@ def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
 
-def blit_text(line, char_group, i, screen, phrase, millis, speed):
-    # COULD PROBABLY CHANGE THIS SO IT COPIES RECTANGLE INSTEAD OF CREATING NEW ONE???
-    chars = char_group.sprites()
-    current_millis = pygame.time.get_ticks()
-    
-    if i < len(char_group):
-        # More characters to animate
-        if (current_millis - millis) >= speed:
-            # Enough time has passed to animate
-            while not chars[i].should_anim:
-                i += 1
-            ch = chars[i]
-            screen.blit(ch.image,ch.rect)
-            i += 1
-            millis = current_millis
-    else:
-        # No more characters to animate - Phrase selection
-        coord = pygame.mouse.get_pos()
-        for spr in phrase:
-            rect = spr.rect
-            top_left = rect.topleft
-            bottom_right = rect.bottomright
-            if coord[0] >= top_left[0] and coord[0] <= bottom_right[0]:
-                if coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
-                    for spr in phrase:
-                        rect = spr.rect
-                        top_left = rect.topleft
-                        bottom_right = rect.bottomright
-                        highlight = pygame.Surface((bottom_right[0] - top_left[0],bottom_right[1] - top_left[1]))
-                        highlight.fill((0,0,255))
-                        screen.blit(highlight,highlight.get_rect(topleft=top_left))
-                    break
-    
-    for ch in chars[:i]:
-        # prev. characters
-        screen.blit(ch.image,ch.rect)
-    return line, i, screen, millis
-    
-    # If line applicable - current line
-    if line < len(lines):
-        # prev. characters
-        for ch in lines[line][:i-1]:
-            screen.blit(ch[0].image,ch[0].rect)
-        if (current_millis - millis) >= speed:
-            while not lines[line][i-1][1]:
-                i += 1
-            ch = lines[line][i-1]
-            screen.blit(ch[0].image,ch[0].rect)
-            i += 1
-            if i > len(lines[line]):
-                i = 1
-                line += 1
-            millis = current_millis
-    # All lines animated - phrase selection
-    else:
-        # Phrase selection
-        coord = pygame.mouse.get_pos()
-        for spr in phrase:
-            rect = spr.rect
-            top_left = rect.topleft
-            bottom_right = rect.bottomright
-            if coord[0] >= top_left[0] and coord[0] <= bottom_right[0]:
-                if coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
-                    for spr in phrase:
-                        rect = spr.rect
-                        top_left = rect.topleft
-                        bottom_right = rect.bottomright
-                        highlight = pygame.Surface((bottom_right[0] - top_left[0],bottom_right[1] - top_left[1]))
-                        highlight.fill((0,0,255))
-                        screen.blit(highlight,highlight.get_rect(topleft=top_left))
-                    break
-    # prev. lines
-    for l in lines[:line]:
-        for ch in l:
-            screen.blit(ch[0].image,ch[0].rect)
-    return line, lines, i, screen, millis
-
 def mouse_functions(inventory, select, phrases):
     states = pygame.mouse.get_pressed()
     if select is not None:
@@ -159,7 +82,7 @@ def main():
     wrap = string_manip.text_wrap(f,test,max_width)
     print(wrap)
     text_height = f.get_rect(test).height
-    char_group = pygame.sprite.Group()
+    char_group = ui.GroupCharacters(screen,phrase,10)
     i = 0
     for line, str in enumerate(wrap):
         count_width = 0
@@ -177,8 +100,7 @@ def main():
             char_group.add(character)
             i += 1
     # Main loop
-    i = 1
-    line = 0
+    i = 0
     millis = pygame.time.get_ticks()
     img = pygame.image.load(path.join('img','ding.png'))
     img = pygame.transform.scale(img,(55,55)).convert()
@@ -224,17 +146,17 @@ def main():
         # blit window
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
         # blit text
-        speed = 1
-        line, i, screen, millis = blit_text(line,char_group,i,screen,phrase,millis,speed)
-        # blit inventory
-        for item in inv:
-            screen.blit(item[0][0],item[0][1])
+        millis = char_group.update(millis)
         # blit buttons
         mouse_states = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
         button_group.update(mouse_states, mouse_pos)
         for button in button_group:
             screen.blit(button.image,button.rect)
+        # blit inventory
+        for item in inv:
+            screen.blit(item[0][0],item[0][1])
+            
         tick(clock,fps)
         
 if __name__ == "__main__":
