@@ -72,7 +72,7 @@ def main():
             print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
         else:
             phrases.append((attrib_start,attrib_end))
-    test_phrase = (41,51)
+    test_phrase = (306,460)
     # Wrapping text
     test = text
     phrase = pygame.sprite.Group()
@@ -80,7 +80,6 @@ def main():
     top_offset = 5
     max_width = x2 - left_offset
     wrap = string_manip.text_wrap(f,test,max_width)
-    print(wrap)
     text_height = f.get_rect(test).height
     char_group = ui.GroupCharacters(screen,phrase,10)
     i = 0
@@ -99,6 +98,9 @@ def main():
             count_width += character.rect.width
             char_group.add(character)
             i += 1
+        i += 1
+    for x in phrase:
+        print(x.char)
     # Main loop
     i = 0
     millis = pygame.time.get_ticks()
