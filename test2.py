@@ -72,7 +72,7 @@ def main():
             print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
         else:
             phrases.append((attrib_start,attrib_end))
-    test_phrase = (6,10)
+    test_phrase = (41,51)
     # Wrapping text
     test = text
     phrase = pygame.sprite.Group()
