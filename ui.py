@@ -156,11 +156,11 @@ class GroupCharacters(pygame.sprite.Group):
     highlights = []
     i = 0
     
-    def __init__(self, screen, phrase_group, speed):
+    def __init__(self, screen, phrases, speed):
         """Initialisation function for GroupCharacters"""
         pygame.sprite.Group.__init__(self)
         self.screen = screen
-        self.phrase_group = phrase_group
+        self.phrases = phrases
         self.speed = speed
     
     def blit_highlights(self):
@@ -180,8 +180,8 @@ class GroupCharacters(pygame.sprite.Group):
         current_millis = pygame.time.get_ticks()
         # More characters to animate
         if self.i < len(self):
+            # Enough time passed to animate?
             if (current_millis - millis) >= self.speed:
-                # Enough time has passed to animate
                 while not chars[self.i].should_anim:
                     self.i += 1
                 chars[self.i].update(self.screen)
@@ -190,29 +190,44 @@ class GroupCharacters(pygame.sprite.Group):
         # No more characters to animate - Phrase selection
         else:
             coord = pygame.mouse.get_pos()
-            for spr in self.phrase_group:
-                top_left = spr.rect.topleft
-                bottom_right = spr.rect.bottomright
-                if coord[0] >= top_left[0] and coord[0] <= bottom_right[0] and \
-                   coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
-                    self.highlights = []
-                    s = self.phrase_group.sprites()
-                    top_left = s[0].rect.topleft
-                    bottom_right = s[0].rect.bottomright
-                    start_line = s[0].line
-                    for x in s[1:]:
-                        if x.line > start_line:
-                            # Appending highlight
-                            self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
-                            # Resetting vars
-                            start_line = x.line
-                            top_left = x.rect.topleft
-                        bottom_right = x.rect.bottomright
-                    # Append final highlight and blit
-                    self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
-                    print(len(self.highlights))
-                    self.blit_highlights()
+            for phrase in self.phrases:
+                for ch in phrase:
+                    top_left = ch.rect.topleft
+                    bottom_right = ch.rect.bottomright
+                    # Is the cursor on a character of this phrase?
+                    if coord[0] >= top_left[0] and coord[0] <= bottom_right[0] and \
+                       coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
+                        self.highlights = []
+                        s = phrase.sprites()
+                        top_left = s[0].rect.topleft
+                        bottom_right = s[0].rect.bottomright
+                        start_line = s[0].line
+                        for x in s[1:]:
+                            if x.line > start_line:
+                                # Appending highlight
+                                self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
+                                # Resetting vars
+                                start_line = x.line
+                                top_left = x.rect.topleft
+                            bottom_right = x.rect.bottomright
+                        # Append final highlight and blit
+                        self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
+                        self.blit_highlights()
+                        # only one phrase selected at a time
+                        break
+                else:
+                    continue
+                # For loop for sprites was broken, so we break here too
+                break
         # prev. characters
         for ch in chars[:self.i]:
             ch.update(self.screen)
         return millis
+        
+class Phrase(pygame.sprite.Group):
+    """Group of Characters attached to this Phrase"""
+    
+    def __init__(self, bounds):
+        """Initialisation method for Phrase"""
+        pygame.sprite.Group.__init__(self)
+        self.bounds = bounds # tuple of indices

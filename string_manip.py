@@ -45,12 +45,12 @@ def text_wrap(font, text, max_width):
 
 def index_string(string):
     """Given a string, print an indexed representation of each character"""
-    indexes = ''
+    indices = ''
     chs = ''
     for i, ch in enumerate(string):
         # New line after each 10 characters
         if i % 10 == 0:
-            print(indexes)
+            print(indices)
             print(chs)
             indexes = ''
             chs = ''
@@ -61,5 +61,5 @@ def index_string(string):
         else:
             indexes += str(i) + '  '
         chs += ch + '  '
-    print(indexes)
+    print(indices)
     print(chs)

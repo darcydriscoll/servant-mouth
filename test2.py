@@ -72,26 +72,30 @@ def main():
             print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
         else:
             phrases.append((attrib_start,attrib_end))
-    test_phrase = (306,460)
+    phrases = [ui.Phrase((306,460)),ui.Phrase((21,30)),ui.Phrase((697,732)),ui.Phrase((0,37))]
     # Wrapping text
     test = text
-    phrase = pygame.sprite.Group()
     left_offset = x1 + 5
     top_offset = 5
     max_width = x2 - left_offset
     wrap = string_manip.text_wrap(f,test,max_width)
     text_height = f.get_rect(test).height
-    char_group = ui.GroupCharacters(screen,phrase,10)
+    char_group = ui.GroupCharacters(screen,phrases,10)
     i = 0
     for line, str in enumerate(wrap):
         count_width = 0
         top = line * line_height + top_offset
         for ch in str:
             left = count_width + left_offset
-            if i >= test_phrase[0] and i <= test_phrase[1]:
-                # Placeholder
-                phrase_group = phrase
-            else: phrase_group = None
+            # Character indexed in phrase?
+            for phrase in phrases:
+                bounds = phrase.bounds
+                if i >= bounds[0] and i <= bounds[1]:
+                    phrase_group = phrase
+                    break # No overlapping phrases
+            else:
+                phrase_group = None
+            # Animating spaces doesn't feel right, so we don't
             if ch == ' ': should_anim = False
             else: should_anim = True
             character = ui.Character((0,255,0),ch,f_size,(top,left),i,line,phrase_group,0,should_anim,True)
@@ -99,8 +103,6 @@ def main():
             char_group.add(character)
             i += 1
         i += 1
-    for x in phrase:
-        print(x.char)
     # Main loop
     i = 0
     millis = pygame.time.get_ticks()
