@@ -17,7 +17,7 @@ def concatenate(lst, sep=' '):
     return str
 
 def text_wrap(font, text, max_width):
-    """Returns the text that can fit in a given width and the text that can't."""
+    """Returns the text that can fit in a given width and the text that can't"""
     size = font.size
     space_width = font.get_rect(' ').width
     lines = []
