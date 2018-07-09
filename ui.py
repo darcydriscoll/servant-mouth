@@ -152,6 +152,7 @@ class Character(pygame.sprite.Sprite):
 
 class GroupCharacters(pygame.sprite.Group):
     """Group of all Characters on screen"""
+    phrase_hovered = None
     phrase_selected = None
     highlights = []
     i = 0
@@ -174,6 +175,16 @@ class GroupCharacters(pygame.sprite.Group):
         surf.fill(colour)
         return (surf, surf.get_rect(topleft=top_left))
     
+    def is_phrase_collision(phrase, mouse_coords):
+        for ch in phrase:
+            top_left = ch.rect.topleft
+            bottom_right = ch.rect.bottomright
+            if mouse_coords[0] >= top_left[0] and mouse_coords[0] <= bottom_right[0] and \
+               mouse_coords[1] >= top_left[1] and mouse_coords[1] <= bottom_right[1]:
+                return True
+        else:
+            return False
+    
     def update(self, millis):
         """Blits the text to the screen"""
         chars = self.sprites()
@@ -189,6 +200,7 @@ class GroupCharacters(pygame.sprite.Group):
                 millis = current_millis
         # No more characters to animate - Phrase selection
         else:
+            # Hover
             coord = pygame.mouse.get_pos()
             for phrase in self.phrases:
                 for ch in phrase:
@@ -197,28 +209,43 @@ class GroupCharacters(pygame.sprite.Group):
                     # Is the cursor on a character of this phrase?
                     if coord[0] >= top_left[0] and coord[0] <= bottom_right[0] and \
                        coord[1] >= top_left[1] and coord[1] <= bottom_right[1]:
-                        self.highlights = []
-                        s = phrase.sprites()
-                        top_left = s[0].rect.topleft
-                        bottom_right = s[0].rect.bottomright
-                        start_line = s[0].line
-                        for x in s[1:]:
-                            if x.line > start_line:
-                                # Appending highlight
-                                self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
-                                # Resetting vars
-                                start_line = x.line
-                                top_left = x.rect.topleft
-                            bottom_right = x.rect.bottomright
-                        # Append final highlight and blit
-                        self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
-                        self.blit_highlights()
+                        self.phrase_hovered = phrase
+                        if self.phrase_hovered.known:
+                            self.highlights = []
+                            s = phrase.sprites()
+                            top_left = s[0].rect.topleft
+                            bottom_right = s[0].rect.bottomright
+                            start_line = s[0].line
+                            for x in s[1:]:
+                                if x.line > start_line:
+                                    # Appending highlight
+                                    self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
+                                    # Resetting vars
+                                    start_line = x.line
+                                    top_left = x.rect.topleft
+                                bottom_right = x.rect.bottomright
+                            # Append final highlight and blit
+                            self.highlights.append(self.draw_highlight(top_left,bottom_right,(0,0,255)))
+                            self.blit_highlights()
                         # only one phrase selected at a time
                         break
                 else:
                     continue
                 # For loop for sprites was broken, so we break here too
                 break
+            else:
+                self.phrase_hovered = None
+            # Select
+            mouse_states = pygame.mouse.get_pressed()
+            if self.phrase_selected is not None and \
+               not mouse_states[0] and not mouse_states[2]:
+                if self.phrase_selected is self.phrase_hovered:
+                    # Activate button
+                    print('activation')
+                    self.phrase_selected.known = True
+                else:
+                    # Deactivate button
+                    self.phrase_selected = None
         # prev. characters
         for ch in chars[:self.i]:
             ch.update(self.screen)
@@ -226,6 +253,7 @@ class GroupCharacters(pygame.sprite.Group):
         
 class Phrase(pygame.sprite.Group):
     """Group of Characters attached to this Phrase"""
+    known = False
     
     def __init__(self, bounds):
         """Initialisation method for Phrase"""

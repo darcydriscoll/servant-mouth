@@ -139,10 +139,15 @@ def main():
                         del inv[x]
                         break
                 else:
+                    # button
                     for button in button_group:
                         if button.rect.collidepoint(e.pos[0],e.pos[1]):
                             button_group.selected = button
                             break
+                    # phrase selection
+                    else:
+                        if char_group.phrase_hovered is not None:
+                            char_group.phrase_selected = char_group.phrase_hovered
         # mouse states
         selected_item = mouse_functions(inv,selected_item,phrase)
         # Updating
