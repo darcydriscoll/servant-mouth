@@ -110,6 +110,34 @@ class Button(pygame.sprite.Sprite):
 class GroupButton(pygame.sprite.Group):
     """Group of UI Buttons"""
     selected = None
+    
+class Item(pygame.sprite.Sprite):
+    """Inventory item Sprite class"""
+    
+    def __init__(self, image, desc, type, inventory):
+        """Initialisation method for Item"""
+        pygame.sprite.Sprite.__init__(self)
+        inventory.add(self)
+        # Image
+        self.image_copy = pygame.transform.scale(image,(55,55)).convert()
+        self.image = self.image_copy.copy()
+        self.image_scaled = pygame.transform.scale(image,(25,25)).convert()
+        self.rect = self.image.get_rect()
+        # Info
+        self.desc = desc
+        self.type = type
+        
+class Inventory(pygame.sprite.Group):
+    """Group of Items"""
+    
+    def set_dests(self):
+        """Set the destinations of all items in the inventory"""
+        y = -60
+        for i, item in enumerate(self):
+            rem = i % 2
+            item.rect.left = rem * 75
+            item.rect.top = y
+            y += rem * 60
 
 class Character(pygame.sprite.Sprite):
     """Single character sprite"""
@@ -123,7 +151,7 @@ class Character(pygame.sprite.Sprite):
         self.font = pygame.freetype.SysFont(None,font_size)
         self.font.pad = True
         self.phrase_group = phrase_group
-        if(self.phrase_group is not None):
+        if self.phrase_group is not None:
             self.phrase_group.add(self)
         self.origin = origin # Topleft
         self.index = index # Index in paragraph
