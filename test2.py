@@ -17,25 +17,6 @@ def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
 
-def mouse_functions(inventory, select, phrases):
-    states = pygame.mouse.get_pressed()
-    if select is not None:
-        if states[0] or states[2]:
-            select[0][1].center = pygame.mouse.get_pos()
-        else:
-            mouse_pos = pygame.mouse.get_pos()
-            for spr in phrases:
-                if spr.rect.collidepoint(mouse_pos):
-                    print("hella")
-                    break
-            else:
-                select[0][1].topleft = select[1]
-                select[0][1].size = (55,55)
-                # selected item was recently appended to end of inventory list
-                inventory[-1] = ((select[2],select[0][1]),select[1],select[2])
-                select = None
-    return select
-        
 def main():
     """Main game function."""
     clock = pygame.time.Clock()
@@ -106,16 +87,14 @@ def main():
     # Main loop
     i = 0
     millis = pygame.time.get_ticks()
+    # inventory
+    inventory = ui.Inventory()
     img = pygame.image.load(path.join('img','ding.png'))
-    img = pygame.transform.scale(img,(55,55)).convert()
-    imgR = img.get_rect()
-    imgR.topleft = (0,0)
     img2 = pygame.image.load(path.join('img','dingdong.jpg'))
-    img2 = pygame.transform.scale(img2,(55,55)).convert()
-    imgR2 = img2.get_rect()
-    imgR2.topleft = (0,75)
-    inv = [((img,imgR),(0,0),img.copy()),((img2,imgR2),(0,75),img2.copy())]
-    selected_item = None
+    ui.Item(img,'placeholder','description','type',inventory)
+    ui.Item(img2,'placeholder2','description2','type2',inventory)
+    inventory.set_dests()
+    # buttons
     button_group = ui.GroupButton()
     test_button = ui.Button((100,130),(200,200),'button man is here guys everyone crowd around',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     test_button2 = ui.Button((50,30),(400,250),'button',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
@@ -127,16 +106,13 @@ def main():
             # Left click or right click
             if e.type == pygame.MOUSEBUTTONDOWN and (e.button == 1 or e.button == 3):
                 # Inventory check
-                for x in range(len(inv)):
-                    if inv[x][0][1].collidepoint(e.pos[0],e.pos[1]):
+                for i, item in enumerate(inventory):
+                    if item.rect.collidepoint(e.pos[0],e.pos[1]):
                         # Scale down
-                        new_img = pygame.transform.scale(inv[x][0][0],(25,25))
-                        inv[x][0][1].size = (25,25)
-                        new_item = ((new_img,inv[x][0][1]),inv[x][1],inv[x][2])
-                        # Put scaled-down version to back of list (blits in front)
-                        inv.append(new_item)
-                        selected_item = new_item
-                        del inv[x]
+                        item.image = item.image_scaled
+                        item.rect.size = (25,25)
+                        # Make this item render first?
+                        inventory.item_selected = item
                         break
                 else:
                     # button
@@ -148,8 +124,8 @@ def main():
                     else:
                         if char_group.phrase_hovered is not None:
                             char_group.phrase_selected = char_group.phrase_hovered
-        # mouse states
-        selected_item = mouse_functions(inv,selected_item,phrase)
+        # inventory selection
+        inventory.update_selected(phrases, char_group.animating)
         # Updating
         screen.fill(bg)
         # blit window
@@ -163,8 +139,8 @@ def main():
         for button in button_group:
             screen.blit(button.image,button.rect)
         # blit inventory
-        for item in inv:
-            screen.blit(item[0][0],item[0][1])
+        for item in inventory:
+            screen.blit(item.image,item.rect)
             
         tick(clock,fps)
         

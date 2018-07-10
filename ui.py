@@ -113,31 +113,56 @@ class GroupButton(pygame.sprite.Group):
     
 class Item(pygame.sprite.Sprite):
     """Inventory item Sprite class"""
+    origin = (0,0)
     
-    def __init__(self, image, desc, type, inventory):
+    def __init__(self, image, name, desc, type, inventory):
         """Initialisation method for Item"""
         pygame.sprite.Sprite.__init__(self)
-        inventory.add(self)
+        self.inventory = inventory
+        self.inventory.add(self)
         # Image
         self.image_copy = pygame.transform.scale(image,(55,55)).convert()
         self.image = self.image_copy.copy()
         self.image_scaled = pygame.transform.scale(image,(25,25)).convert()
         self.rect = self.image.get_rect()
         # Info
+        self.name = name
         self.desc = desc
         self.type = type
         
 class Inventory(pygame.sprite.Group):
     """Group of Items"""
+    item_selected = None
     
     def set_dests(self):
         """Set the destinations of all items in the inventory"""
-        y = -60
+        y = 0
         for i, item in enumerate(self):
+            # broken?
             rem = i % 2
-            item.rect.left = rem * 75
-            item.rect.top = y
+            item.origin = (rem * 75, y) # topleft
+            item.rect.topleft = item.origin
             y += rem * 60
+            
+    def update_selected(self, phrases, animating):
+        if self.item_selected is not None:
+            states = pygame.mouse.get_pressed()
+            if states[0] or states[2]:
+                self.item_selected.rect.center = pygame.mouse.get_pos()
+            else:
+                if not animating:
+                    mouse_pos = pygame.mouse.get_pos()
+                    for phrase in phrases:
+                        for spr in phrase:
+                            if spr.rect.collidepoint(mouse_pos):
+                                # Item interacting with phrase
+                                print(phrase)
+                                return
+                # Item dropped
+                self.item_selected.rect.topleft = self.item_selected.origin
+                self.item_selected.rect.size = (55,55)
+                self.item_selected.image = self.item_selected.image_copy
+                self.item_selected = None
 
 class Character(pygame.sprite.Sprite):
     """Single character sprite"""
@@ -180,6 +205,7 @@ class Character(pygame.sprite.Sprite):
 
 class GroupCharacters(pygame.sprite.Group):
     """Group of all Characters on screen"""
+    animating = True
     phrase_hovered = None
     phrase_selected = None
     highlights = []
@@ -228,6 +254,7 @@ class GroupCharacters(pygame.sprite.Group):
                 millis = current_millis
         # No more characters to animate - Phrase selection
         else:
+            self.animating = False
             # Hover
             coord = pygame.mouse.get_pos()
             for phrase in self.phrases:
@@ -287,3 +314,6 @@ class Phrase(pygame.sprite.Group):
         """Initialisation method for Phrase"""
         pygame.sprite.Group.__init__(self)
         self.bounds = bounds # tuple of indices
+
+class Phrases(pygame.sprite.Group):
+    """Group of all characters attached to a Phrase"""
