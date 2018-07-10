@@ -176,8 +176,10 @@ class Character(pygame.sprite.Sprite):
         self.font = pygame.freetype.SysFont(None,font_size)
         self.font.pad = True
         self.phrase_group = phrase_group
-        if self.phrase_group is not None:
+        try:
             self.phrase_group.add(self)
+        except AttributeError:
+            pass
         self.origin = origin # Topleft
         self.index = index # Index in paragraph
         self.line = line
@@ -246,11 +248,18 @@ class GroupCharacters(pygame.sprite.Group):
         # More characters to animate
         if self.i < len(self):
             # Enough time passed to animate?
-            if (current_millis - millis) >= self.speed:
-                while not chars[self.i].should_anim:
-                    self.i += 1
-                chars[self.i].update(self.screen)
-                self.i += 1
+            diff = current_millis - millis
+            if diff >= self.speed:
+                # Deciding how many characters we need to blit
+                overlap = int(diff / self.speed)
+                for x in range(overlap):
+                    try:
+                        while not chars[self.i].should_anim:
+                            self.i += 1
+                        chars[self.i].update(self.screen)
+                        self.i += 1
+                    except IndexError:
+                        break
                 millis = current_millis
         # No more characters to animate - Phrase selection
         else:

@@ -61,7 +61,7 @@ def main():
     max_width = x2 - left_offset
     wrap = string_manip.text_wrap(f,test,max_width)
     text_height = f.get_rect(test).height
-    char_group = ui.GroupCharacters(screen,phrases,10)
+    char_group = ui.GroupCharacters(screen,phrases,5)
     i = 0
     for line, str in enumerate(wrap):
         count_width = 0
