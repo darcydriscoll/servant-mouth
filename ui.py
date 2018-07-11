@@ -3,7 +3,8 @@
 # By snarlinger (@gmail.com)
 # Released under an MIT license
 
-import pygame, pygame.freetype
+import pygame, pygame.freetype, pygame.mixer
+from os import path
 
 import string_manip
 
@@ -219,6 +220,7 @@ class GroupCharacters(pygame.sprite.Group):
         self.screen = screen
         self.phrases = phrases
         self.speed = speed
+        self.sound = pygame.mixer.Sound(path.join('sound','sfx','cowbell.ogg'))
     
     def blit_highlights(self):
         """Blits each highlight in self.highlights"""
@@ -250,6 +252,8 @@ class GroupCharacters(pygame.sprite.Group):
             # Enough time passed to animate?
             diff = current_millis - millis
             if diff >= self.speed:
+                self.sound.stop()
+                self.sound.play()
                 # Deciding how many characters we need to blit
                 overlap = int(diff / self.speed)
                 for x in range(overlap):

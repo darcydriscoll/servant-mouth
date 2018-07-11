@@ -3,7 +3,7 @@
 # By snarlinger (@gmail.com)
 # Released under an MIT license
 
-import sys, pygame, pygame.freetype
+import sys, pygame, pygame.freetype, pygame.mixer
 import xml.etree.ElementTree as ET
 from pygame.locals import *
 from os import path
@@ -61,7 +61,7 @@ def main():
     max_width = x2 - left_offset
     wrap = string_manip.text_wrap(f,test,max_width)
     text_height = f.get_rect(test).height
-    char_group = ui.GroupCharacters(screen,phrases,5)
+    char_group = ui.GroupCharacters(screen,phrases,500)
     i = 0
     for line, str in enumerate(wrap):
         count_width = 0
