@@ -8,7 +8,11 @@ from os import path
 
 import string_manip
 
+#pygame.mixer.pre_init(16000, -16, 2, 1024)
+#pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
+pygame.mixer.quit()
+pygame.mixer.init(16000, -16, 2, 512)
 
 class Button(pygame.sprite.Sprite):
     """UI Button"""
@@ -213,6 +217,10 @@ class GroupCharacters(pygame.sprite.Group):
     phrase_selected = None
     highlights = []
     i = 0
+    sound = pygame.mixer.Sound(path.join('sound','sfx','text-blip3.ogg'))
+    sound.set_volume(0.25)
+    should_sound = False
+    skip = True
     
     def __init__(self, screen, phrases, speed):
         """Initialisation function for GroupCharacters"""
@@ -220,7 +228,9 @@ class GroupCharacters(pygame.sprite.Group):
         self.screen = screen
         self.phrases = phrases
         self.speed = speed
-        self.sound = pygame.mixer.Sound(path.join('sound','sfx','cowbell.ogg'))
+    
+    def play_sound(self):
+        self.sound.play()
     
     def blit_highlights(self):
         """Blits each highlight in self.highlights"""
@@ -252,12 +262,13 @@ class GroupCharacters(pygame.sprite.Group):
             # Enough time passed to animate?
             diff = current_millis - millis
             if diff >= self.speed:
-                self.sound.stop()
-                self.sound.play()
                 # Deciding how many characters we need to blit
                 overlap = int(diff / self.speed)
                 for x in range(overlap):
                     try:
+                        if not chars[self.i].should_anim:
+                            self.skip = True
+                            pass
                         while not chars[self.i].should_anim:
                             self.i += 1
                         chars[self.i].update(self.screen)
@@ -265,6 +276,8 @@ class GroupCharacters(pygame.sprite.Group):
                     except IndexError:
                         break
                 millis = current_millis
+                self.should_sound = True
+                self.skip = not self.skip
         # No more characters to animate - Phrase selection
         else:
             self.animating = False

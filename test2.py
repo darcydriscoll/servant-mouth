@@ -61,7 +61,7 @@ def main():
     max_width = x2 - left_offset
     wrap = string_manip.text_wrap(f,test,max_width)
     text_height = f.get_rect(test).height
-    char_group = ui.GroupCharacters(screen,phrases,500)
+    char_group = ui.GroupCharacters(screen,phrases,20)
     i = 0
     for line, str in enumerate(wrap):
         count_width = 0
@@ -141,8 +141,15 @@ def main():
         # blit inventory
         for item in inventory:
             screen.blit(item.image,item.rect)
-            
+        
         tick(clock,fps)
+        
+        # Character sound
+        if char_group.should_sound and not char_group.skip:
+            print('hello?')
+            char_group.sound.stop()
+            char_group.play_sound()
+            char_group.should_sound = False
         
 if __name__ == "__main__":
     main()
