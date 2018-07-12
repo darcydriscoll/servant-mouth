@@ -217,17 +217,20 @@ class GroupCharacters(pygame.sprite.Group):
     phrase_selected = None
     highlights = []
     i = 0
+    # Sound
     sound = pygame.mixer.Sound(path.join('sound','sfx','text-blip3.ogg'))
     sound.set_volume(0.25)
     should_sound = False
     skip = True
+    punctuation_pause = True
     
-    def __init__(self, screen, phrases, speed):
+    def __init__(self, screen, phrases, base_speed):
         """Initialisation function for GroupCharacters"""
         pygame.sprite.Group.__init__(self)
         self.screen = screen
         self.phrases = phrases
-        self.speed = speed
+        self.base_speed = base_speed
+        self.speed = base_speed
     
     def play_sound(self):
         self.sound.play()
@@ -262,20 +265,27 @@ class GroupCharacters(pygame.sprite.Group):
             # Enough time passed to animate?
             diff = current_millis - millis
             if diff >= self.speed:
+                # If this is the start of a word, we want to ensure blit sound
+                if not chars[self.i].should_anim:
+                    self.skip = True
                 # Deciding how many characters we need to blit
                 overlap = int(diff / self.speed)
                 for x in range(overlap):
                     try:
-                        if not chars[self.i].should_anim:
-                            self.skip = True
-                            pass
                         while not chars[self.i].should_anim:
                             self.i += 1
                         chars[self.i].update(self.screen)
                         self.i += 1
+                        self.speed = self.base_speed
+                        # Punctuation
+                        if self.punctuation_pause and chars[self.i - 1].char in [',','.',':',';','?','!','-']:
+                            print('me')
+                            self.speed += 150
+                            break
                     except IndexError:
                         break
                 millis = current_millis
+                # Sound
                 self.should_sound = True
                 self.skip = not self.skip
         # No more characters to animate - Phrase selection
