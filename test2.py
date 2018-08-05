@@ -37,12 +37,36 @@ def main():
     y1 = y_offset; y2 = h - y_offset
     pointlist = [(x1,y1),(x2,y1),(x2,y2),(x1,y2)]
     # Finding text
-    tree = ET.parse(path.join('dialogue','test.xml'))
+    tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
     para = root.find('para')
+    paragraph = para.iter()
+    paragraph.__next__() # skipping 'para'
+    
+    phrases = []
+    xml_i = 0
+    text = ''
+    for el in paragraph:
+        tag = el.tag
+        print("Tag: " + tag)
+        phrase_start = None
+        # tag cases
+        if tag == 'phrasestart':
+            phrase_start = xml_i
+        else if tag == 'phraseend'
+            assert phrase_start is not None
+            phrases.append(ui.Phrase(phrase_start,xml_i))
+            phrase_start = None
+        else if tag == 'content':
+            el_text = el.text
+            xml_i += el_text.len()
+            text += el_text
+        else:
+            raise ValueError('Unsupported tag');
+        
     text = para.find('text').find('content').text
     # Setting phrases
-    phrases = []
+    phrases = [] # int tuple
     for phrase in para.find('phrases'):
         attrib_start = phrase.attrib['start']
         attrib_end = phrase.attrib['end']

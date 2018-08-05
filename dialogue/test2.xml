@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--Test-->
+<root>
+    <para>
+        <phrasestart></phrasestart>
+        <content>This is a phrase.</content>
+        <phraseend/>
+        <content>This is not a phrase. This is just content. The last word in this sentence, however, is a </content>
+        <phrasestart></phrasestart>
+        <content>phrase</content>
+        <phraseend/>
+        <content>. This last sentence is not a phrase.</content>
+    </para>
+</root>
