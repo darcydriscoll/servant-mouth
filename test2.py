@@ -46,38 +46,39 @@ def main():
     phrases = []
     xml_i = 0
     text = ''
+    phrase_start = None
     for el in paragraph:
         tag = el.tag
         print("Tag: " + tag)
-        phrase_start = None
         # tag cases
         if tag == 'phrasestart':
             phrase_start = xml_i
-        else if tag == 'phraseend'
+        elif tag == 'phraseend':
             assert phrase_start is not None
-            phrases.append(ui.Phrase(phrase_start,xml_i))
+            phrases.append(ui.Phrase((phrase_start,xml_i - 1)))
             phrase_start = None
-        else if tag == 'content':
+        elif tag == 'content':
             el_text = el.text
-            xml_i += el_text.len()
+            xml_i += len(el_text)
             text += el_text
         else:
             raise ValueError('Unsupported tag');
         
-    text = para.find('text').find('content').text
+        
+    #text = para.find('text').find('content').text
     # Setting phrases
-    phrases = [] # int tuple
-    for phrase in para.find('phrases'):
-        attrib_start = phrase.attrib['start']
-        attrib_end = phrase.attrib['end']
-        try:
-            start = int(attrib_start)
-            end = int(attrib_end)
-        except ValueError:
-            print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
-        else:
-            phrases.append((attrib_start,attrib_end))
-    phrases = [ui.Phrase((306,460)),ui.Phrase((21,30)),ui.Phrase((697,732)),ui.Phrase((0,37))]
+    # phrases = [] # int tuple
+    # for phrase in para.find('phrases'):
+        # attrib_start = phrase.attrib['start']
+        # attrib_end = phrase.attrib['end']
+        # try:
+            # start = int(attrib_start)
+            # end = int(attrib_end)
+        # except ValueError:
+            # print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
+        # else:
+            # phrases.append((attrib_start,attrib_end))
+    # phrases = [ui.Phrase((306,460)),ui.Phrase((21,30)),ui.Phrase((697,732)),ui.Phrase((0,37))]
     # Wrapping text
     test = text
     left_offset = x1 + 5

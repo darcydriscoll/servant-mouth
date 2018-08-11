@@ -5,7 +5,7 @@
         <phrasestart></phrasestart>
         <content>This is a phrase.</content>
         <phraseend/>
-        <content>This is not a phrase. This is just content. The last word in this sentence, however, is a </content>
+        <content> This is not a phrase. This is just content. The last word in this sentence, however, is a </content>
         <phrasestart></phrasestart>
         <content>phrase</content>
         <phraseend/>
