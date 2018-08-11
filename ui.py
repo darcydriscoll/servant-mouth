@@ -279,7 +279,7 @@ class GroupCharacters(pygame.sprite.Group):
                         self.speed = self.base_speed
                         # Punctuation
                         if self.punctuation_pause and chars[self.i - 1].char in [',','.',':',';','?','!','-']:
-                            print('me')
+                            print('punctuation')
                             self.speed += 150
                             break
                     except IndexError:

@@ -39,78 +39,65 @@ def main():
     # Finding text
     tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
-    para = root.find('para')
-    paragraph = para.iter()
-    paragraph.__next__() # skipping 'para'
     
-    phrases = []
-    xml_i = 0
-    text = ''
-    phrase_start = None
-    for el in paragraph:
-        tag = el.tag
-        print("Tag: " + tag)
-        # tag cases
-        if tag == 'phrasestart':
-            phrase_start = xml_i
-        elif tag == 'phraseend':
-            assert phrase_start is not None
-            phrases.append(ui.Phrase((phrase_start,xml_i - 1)))
-            phrase_start = None
-        elif tag == 'content':
-            el_text = el.text
-            xml_i += len(el_text)
-            text += el_text
-        else:
-            raise ValueError('Unsupported tag');
-        
-        
-    #text = para.find('text').find('content').text
-    # Setting phrases
-    # phrases = [] # int tuple
-    # for phrase in para.find('phrases'):
-        # attrib_start = phrase.attrib['start']
-        # attrib_end = phrase.attrib['end']
-        # try:
-            # start = int(attrib_start)
-            # end = int(attrib_end)
-        # except ValueError:
-            # print('ERROR: start or end value of phrase not an int. Skipping',attrib_start,attrib_end)
-        # else:
-            # phrases.append((attrib_start,attrib_end))
-    # phrases = [ui.Phrase((306,460)),ui.Phrase((21,30)),ui.Phrase((697,732)),ui.Phrase((0,37))]
-    # Wrapping text
-    test = text
-    left_offset = x1 + 5
-    top_offset = 5
-    max_width = x2 - left_offset
-    wrap = string_manip.text_wrap(f,test,max_width)
-    text_height = f.get_rect(test).height
-    char_group = ui.GroupCharacters(screen,phrases,30)
-    i = 0
-    for line, str in enumerate(wrap):
-        count_width = 0
-        top = line * line_height + top_offset
-        for ch in str:
-            left = count_width + left_offset
-            # Character indexed in phrase?
-            for phrase in phrases:
-                bounds = phrase.bounds
-                if i >= bounds[0] and i <= bounds[1]:
-                    phrase_group = phrase
-                    break # No overlapping phrases
+    char_groups = []
+    paragraphs = root.findall('para')
+    for paragraph in paragraphs:
+        p_iter = paragraph.iter()
+        p_iter.__next__() # skipping 'para'
+        # Finding phrases and text
+        phrases = []
+        xml_i = 0
+        text = ''
+        phrase_start = None
+        for el in p_iter:
+            tag = el.tag
+            print("Tag: " + tag)
+            # tag cases
+            if tag == 'phrasestart':
+                phrase_start = xml_i
+            elif tag == 'phraseend':
+                assert phrase_start is not None
+                phrases.append(ui.Phrase((phrase_start,xml_i - 1)))
+                phrase_start = None
+            elif tag == 'content':
+                el_text = el.text
+                xml_i += len(el_text)
+                text += el_text
             else:
-                phrase_group = None
-            # Animating spaces doesn't feel right, so we don't
-            if ch == ' ': should_anim = False
-            else: should_anim = True
-            character = ui.Character((0,255,0),ch,f_size,(top,left),i,line,phrase_group,0,should_anim,True)
-            count_width += character.rect.width
-            char_group.add(character)
-            i += 1
-        i += 1
+                raise ValueError('Unsupported tag');
+        # Creating characters
+        left_offset = x1 + 5
+        top_offset = 5
+        max_width = x2 - left_offset
+        wrap = string_manip.text_wrap(f,text,max_width)
+        text_height = f.get_rect(text).height
+        char_group = ui.GroupCharacters(screen,phrases,30)
+        char_groups.append(char_group);
+        char_i = 0
+        for line, str in enumerate(wrap):
+            count_width = 0
+            top = line * line_height + top_offset
+            for ch in str:
+                left = count_width + left_offset
+                # Character indexed in phrase?
+                for phrase in phrases:
+                    bounds = phrase.bounds
+                    if char_i >= bounds[0] and char_i <= bounds[1]:
+                        phrase_group = phrase
+                        break # No overlapping phrases
+                else:
+                    phrase_group = None
+                # Animating spaces doesn't feel right, so we don't
+                if ch == ' ': should_anim = False
+                else: should_anim = True
+                character = ui.Character((0,255,0),ch,f_size,(top,left),char_i,line,phrase_group,0,should_anim,True)
+                count_width += character.rect.width
+                char_group.add(character)
+                char_i += 1
+            char_i += 1
+    char_group = char_groups[0]
     # Main loop
-    i = 0
     millis = pygame.time.get_ticks()
     # inventory
     inventory = ui.Inventory()
@@ -124,6 +111,9 @@ def main():
     test_button = ui.Button((100,130),(200,200),'button man is here guys everyone crowd around',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     test_button2 = ui.Button((50,30),(400,250),'button',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     while True:
+        if not char_group.animating:
+            char_group = char_groups[1]
+        
         # Event handling
         for e in pygame.event.get():
             # QUIT
