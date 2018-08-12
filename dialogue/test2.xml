@@ -2,6 +2,30 @@
 <!--Test-->
 <root>
     <para>
+        <content>This is a new paragraph. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph1. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph.2 There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph1. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph.2 There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
+        <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
+    </para>
+    <para>
         <phrasestart></phrasestart>
         <content>This is a phrase.</content>
         <phraseend/>

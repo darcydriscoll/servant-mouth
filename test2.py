@@ -43,9 +43,10 @@ def main():
     tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
     
+    para_offset = 0
     char_groups = []
     paragraphs = root.findall('para')
-    for paragraph in paragraphs:
+    for para_i, paragraph in enumerate(paragraphs):
         p_iter = paragraph.iter()
         p_iter.__next__() # skipping 'para'
         # Finding phrases and text
@@ -80,7 +81,7 @@ def main():
         char_i = 0
         for line, string in enumerate(wrap):
             count_width = 0
-            top = line * line_height + top_offset
+            top = line * line_height + top_offset + para_offset
             for ch in string:
                 left = count_width + left_offset
                 # Character indexed in phrase?
@@ -99,6 +100,7 @@ def main():
                 char_group.add(character)
                 char_i += 1
             char_i += 1
+        para_offset = top + text_height
     # Main loop
     millis = pygame.time.get_ticks()
     para = 0
@@ -151,6 +153,9 @@ def main():
         screen.fill(bg)
         # blit window
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
+        # blit previous text
+        for i in range(para):
+            char_groups[i].update(millis)
         # blit text
         millis = char_groups[para].update(millis)
         # blit buttons
