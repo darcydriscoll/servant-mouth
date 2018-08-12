@@ -11,6 +11,9 @@ from os import path
 import string_manip
 import ui
 
+# Constants
+ENTER = 13
+
 pygame.init()
 
 def tick(clock, fps):
@@ -75,10 +78,10 @@ def main():
         char_group = ui.GroupCharacters(screen,phrases,30)
         char_groups.append(char_group);
         char_i = 0
-        for line, str in enumerate(wrap):
+        for line, string in enumerate(wrap):
             count_width = 0
             top = line * line_height + top_offset
-            for ch in str:
+            for ch in string:
                 left = count_width + left_offset
                 # Character indexed in phrase?
                 for phrase in phrases:
@@ -96,9 +99,9 @@ def main():
                 char_group.add(character)
                 char_i += 1
             char_i += 1
-    char_group = char_groups[0]
     # Main loop
     millis = pygame.time.get_ticks()
+    para = 0
     # inventory
     inventory = ui.Inventory()
     img = pygame.image.load(path.join('img','ding.png'))
@@ -111,13 +114,15 @@ def main():
     test_button = ui.Button((100,130),(200,200),'button man is here guys everyone crowd around',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     test_button2 = ui.Button((50,30),(400,250),'button',((255,0,0),(0,255,0),(0,0,255),(0,150,150)),button_group)
     while True:
-        if not char_group.animating:
-            char_group = char_groups[1]
-        
         # Event handling
         for e in pygame.event.get():
             # QUIT
             if e.type == pygame.QUIT: sys.exit()
+            # keys
+            if e.type == pygame.KEYUP:
+                if e.key == ENTER:
+                    if not char_groups[para].animating and para < len(char_groups) - 1:
+                        para += 1
             # Left click or right click
             if e.type == pygame.MOUSEBUTTONDOWN and (e.button == 1 or e.button == 3):
                 # Inventory check
@@ -137,16 +142,17 @@ def main():
                             break
                     # phrase selection
                     else:
-                        if char_group.phrase_hovered is not None:
-                            char_group.phrase_selected = char_group.phrase_hovered
+                        if char_groups[para].phrase_hovered is not None:
+                            char_groups[para].phrase_selected = char_groups[para].phrase_hovered
         # inventory selection
-        inventory.update_selected(phrases, char_group.animating)
+        # TODO - this should not be phrases
+        inventory.update_selected(phrases, char_groups[para].animating)
         # Updating
         screen.fill(bg)
         # blit window
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
         # blit text
-        millis = char_group.update(millis)
+        millis = char_groups[para].update(millis)
         # blit buttons
         mouse_states = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
@@ -160,10 +166,10 @@ def main():
         tick(clock,fps)
         
         # Character sound
-        if char_group.should_sound and not char_group.skip:
-            char_group.sound.stop()
-            char_group.play_sound()
-            char_group.should_sound = False
+        if char_groups[para].should_sound and not char_groups[para].skip:
+            char_groups[para].sound.stop()
+            char_groups[para].play_sound()
+            char_groups[para].should_sound = False
         
 if __name__ == "__main__":
     main()
