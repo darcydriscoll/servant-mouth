@@ -10,14 +10,17 @@
                 <content>This is a new paragraph1. There are currently no phrases in this paragraph.</content>
                 <content> This is a new content after the previous. Anything happen?</content>
             </para>
-            <!-- horace: 0 -->
-                <para>
-                    <content>This is a new paragraph2. There are currently no phrases in this paragraph.</content>
-                </para>
-            <!-- horace: 1 -->
-                <para>
-                    <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
-                </para>
+            <para>
+                <!-- <if var='horace' equals='0'>
+                    <content>Kiss me, Horace.</content>
+                </if>
+                <else> -->
+                    <content>Eat shit, Horace.</content>
+                <!-- </else> -->
+            </para>
+            <para>
+                <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
+            </para>
         </screen>
         <screen>
             <para>
