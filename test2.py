@@ -42,7 +42,7 @@ def main():
     # Finding text
     tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
-    screens = root.findall('screen')
+    screens = root.find('screens').findall('screen')
     paragraphs = screens[0].findall('para')
     
     para_offset = 0
