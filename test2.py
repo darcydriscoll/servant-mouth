@@ -19,7 +19,7 @@ pygame.init()
 def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
-
+    
 def main():
     """Main game function."""
     clock = pygame.time.Clock()
@@ -42,10 +42,11 @@ def main():
     # Finding text
     tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
+    screens = root.findall('screen')
+    paragraphs = screens[0].findall('para')
     
     para_offset = 0
     char_groups = []
-    paragraphs = root.findall('para')
     for para_i, paragraph in enumerate(paragraphs):
         p_iter = paragraph.iter()
         p_iter.__next__() # skipping 'para'
@@ -104,6 +105,7 @@ def main():
     # Main loop
     millis = pygame.time.get_ticks()
     para = 0
+    screen_i = 0
     # inventory
     inventory = ui.Inventory()
     img = pygame.image.load(path.join('img','ding.png'))
@@ -123,8 +125,73 @@ def main():
             # keys
             if e.type == pygame.KEYUP:
                 if e.key == ENTER:
-                    if not char_groups[para].animating and para < len(char_groups) - 1:
-                        para += 1
+                    if not char_groups[para].animating:
+                        if para < len(char_groups) - 1:
+                            para += 1
+                        elif screen_i < len(screens) - 1:
+                            # new screen
+                            screen_i += 1
+                            paragraphs = screens[screen_i].findall('para')
+                            para_offset = 0
+                            char_groups = []
+                            for para_i, paragraph in enumerate(paragraphs):
+                                p_iter = paragraph.iter()
+                                p_iter.__next__() # skipping 'para'
+                                # Finding phrases and text
+                                phrases = []
+                                xml_i = 0
+                                text = ''
+                                phrase_start = None
+                                for el in p_iter:
+                                    tag = el.tag
+                                    print("Tag: " + tag)
+                                    # tag cases
+                                    if tag == 'phrasestart':
+                                        phrase_start = xml_i
+                                    elif tag == 'phraseend':
+                                        assert phrase_start is not None
+                                        phrases.append(ui.Phrase((phrase_start,xml_i - 1)))
+                                        phrase_start = None
+                                    elif tag == 'content':
+                                        el_text = el.text
+                                        xml_i += len(el_text)
+                                        text += el_text
+                                    else:
+                                        raise ValueError('Unsupported tag');
+                                # Creating characters
+                                left_offset = x1 + 5
+                                top_offset = 5
+                                max_width = x2 - left_offset
+                                wrap = string_manip.text_wrap(f,text,max_width)
+                                text_height = f.get_rect(text).height
+                                char_group = ui.GroupCharacters(screen,phrases,30)
+                                char_groups.append(char_group);
+                                char_i = 0
+                                for line, string in enumerate(wrap):
+                                    count_width = 0
+                                    top = line * line_height + top_offset + para_offset
+                                    for ch in string:
+                                        left = count_width + left_offset
+                                        # Character indexed in phrase?
+                                        for phrase in phrases:
+                                            bounds = phrase.bounds
+                                            if char_i >= bounds[0] and char_i <= bounds[1]:
+                                                phrase_group = phrase
+                                                break # No overlapping phrases
+                                        else:
+                                            phrase_group = None
+                                        # Animating spaces doesn't feel right, so we don't
+                                        if ch == ' ': should_anim = False
+                                        else: should_anim = True
+                                        character = ui.Character((0,255,0),ch,f_size,(top,left),char_i,line,phrase_group,0,should_anim,True)
+                                        count_width += character.rect.width
+                                        char_group.add(character)
+                                        char_i += 1
+                                    char_i += 1
+                                para_offset = top + text_height
+                            # reset
+                            para = 0
+                            millis = pygame.time.get_ticks()
             # Left click or right click
             if e.type == pygame.MOUSEBUTTONDOWN and (e.button == 1 or e.button == 3):
                 # Inventory check
