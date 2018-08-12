@@ -3,7 +3,20 @@
 <root>
     <screen>
         <para>
-            <phrasestart></phrasestart>
+            <content>This is a new paragraph1. There are currently no phrases in this paragraph.</content>
+            <content> This is a new content after the previous. Anything happen?</content>
+        </para>
+        <para>
+            <content>This is a new paragraph2. There are currently no phrases in this paragraph.</content>
+        </para>
+        <para>
+            <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
+        </para>
+    </screen>
+    <screen>
+        <para>
+            <phrasestart>
+            </phrasestart>
             <content>This is a phrase.</content>
             <phraseend/>
             <content> This is not a phrase. This is just content. The last word in this sentence, however, is a </content>
@@ -14,17 +27,6 @@
         </para>
         <para>
             <content>This is a new paragraph. There are currently no phrases in this paragraph.</content>
-        </para>
-    </screen>
-    <screen>
-        <para>
-            <content>This is a new paragraph1. There are currently no phrases in this paragraph.</content>
-        </para>
-        <para>
-            <content>This is a new paragraph2. There are currently no phrases in this paragraph.</content>
-        </para>
-        <para>
-            <content>This is a new paragraph3. There are currently no phrases in this paragraph.</content>
         </para>
     </screen>
 </root>

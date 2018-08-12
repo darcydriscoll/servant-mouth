@@ -12,7 +12,7 @@ import string_manip
 import ui
 
 # Constants
-ENTER = 13
+KEY_ENTER = 13
 
 pygame.init()
 
@@ -124,7 +124,7 @@ def main():
             if e.type == pygame.QUIT: sys.exit()
             # keys
             if e.type == pygame.KEYUP:
-                if e.key == ENTER:
+                if e.key == KEY_ENTER:
                     if not char_groups[para].animating:
                         if para < len(char_groups) - 1:
                             para += 1
