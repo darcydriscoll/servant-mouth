@@ -43,13 +43,12 @@ def main():
     tree = ET.parse(path.join('dialogue','test2.xml'))
     root = tree.getroot()
     screens = root.find('screens').findall('screen')
+    print("BEGIN TESTING XPATH")
+    for el in screens[0].find('para').findall('*'):
+        print(el.tag)
+    print("END TESTING XPATH")
     
-    def foo(para_offset, iterator, char_groups):
-        # Finding phrases and text
-        phrases = []
-        xml_i = 0
-        text = ''
-        phrase_start = None
+    def bar(phrases, xml_i, text, phrase_start, iterator):
         for el in iterator:
             tag = el.tag
             print("Tag: " + tag)
@@ -65,10 +64,20 @@ def main():
                 xml_i += len(el_text)
                 text += el_text
             elif tag == 'if':
-                # TODO: recurse on foo()
-                pass
+                #if_iter = el.iter()
+                #if_iter.__next__()
+                phrases, xml_i, text, phrase_start = bar(phrases, xml_i, text, phrase_start, el.findall('*'))
             else:
                 raise ValueError('Unsupported tag');
+        return phrases, xml_i, text, phrase_start
+    
+    def foo(para_offset, iterator, char_groups):
+        # Finding phrases and text
+        phrases = []
+        xml_i = 0
+        text = ''
+        phrase_start = None
+        phrases, xml_i, text, phrase_start = bar(phrases, xml_i, text, phrase_start, iterator)
         # Creating characters
         left_offset = x1 + 5
         top_offset = 5
@@ -108,9 +117,9 @@ def main():
         para_offset = 0
         char_groups = []
         for para_i, paragraph in enumerate(paragraphs):
-            p_iter = paragraph.iter()
-            p_iter.__next__() # skipping 'para'
-            para_offset, phrases, char_groups = foo(para_offset, p_iter, char_groups)
+            #p_iter = paragraph.iter()
+            #p_iter.__next__() # skipping 'para'
+            para_offset, phrases, char_groups = foo(para_offset, paragraph.findall('*'), char_groups)
         
         return phrases, char_groups
     
