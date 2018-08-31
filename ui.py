@@ -1,4 +1,4 @@
-# UI (User interface)
+# gui (User interface)
 # Classes used for the user interface.
 # By snarlinger (@gmail.com)
 # Released under an MIT license
@@ -15,7 +15,7 @@ pygame.mixer.quit()
 pygame.mixer.init(16000, -16, 2, 512)
 
 class Button(pygame.sprite.Sprite):
-    """UI Button"""
+    """gui Button"""
     
     # Attributes
     active = True
@@ -113,7 +113,7 @@ class Button(pygame.sprite.Sprite):
         self.text_blit()
 
 class GroupButton(pygame.sprite.Group):
-    """Group of UI Buttons"""
+    """Group of gui Buttons"""
     selected = None
     
 class Item(pygame.sprite.Sprite):
@@ -145,7 +145,7 @@ class Inventory(pygame.sprite.Group):
         for i, item in enumerate(self):
             # broken?
             rem = i % 2
-            item.origin = (rem * 75, y) # topleft
+            item.origin = (rem * 75, y)  # topleft
             item.rect.topleft = item.origin
             y += rem * 60
             
@@ -168,6 +168,7 @@ class Inventory(pygame.sprite.Group):
                 self.item_selected.rect.size = (55,55)
                 self.item_selected.image = self.item_selected.image_copy
                 self.item_selected = None
+
 
 class Character(pygame.sprite.Sprite):
     """Single character sprite"""
