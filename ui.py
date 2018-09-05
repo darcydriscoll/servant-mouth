@@ -212,7 +212,7 @@ class Character(pygame.sprite.Sprite):
         # add effects here
 
 class GroupCharacters(pygame.sprite.Group):
-    """Group of all Characters on screen"""
+    """Group of Characters"""
     animating = True
     phrase_hovered = None
     phrase_selected = None
@@ -291,7 +291,7 @@ class GroupCharacters(pygame.sprite.Group):
                 self.skip = not self.skip
         # No more characters to animate - Phrase selection
         else:
-            millis = current_millis
+            millis = current_milli
             self.animating = False
             # Hover
             coord = pygame.mouse.get_pos()

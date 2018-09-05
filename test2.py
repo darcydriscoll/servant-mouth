@@ -19,7 +19,8 @@ pygame.init()
 def tick(clock, fps):
     clock.tick(fps)
     pygame.display.flip()
-    
+
+
 def main():
     """Main game function."""
     clock = pygame.time.Clock()
@@ -31,7 +32,7 @@ def main():
     f_size = 14
     f = pygame.freetype.SysFont(None,f_size)
     f.pad = True
-    line_height = f.get_sized_ascender(f_size) + abs(f.get_sized_descender(f_size)) # can probably make this more efficient by using one of the other functions (size()?)
+    line_height = f.get_sized_ascender(f_size) + abs(f.get_sized_descender(f_size))  # can probably make this more efficient by using one of the other functions (size()?)
     # Making window (surf,rect)
     x_offset = 25
     y_offset = 1
