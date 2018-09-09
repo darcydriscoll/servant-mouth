@@ -25,7 +25,7 @@ class DialogueState:
     LINE_HEIGHT = FONT.get_sized_ascender(FONT_SIZE) + abs(FONT.get_sized_descender(FONT_SIZE))
     DEFAULT_CHAR_COL = (0, 255, 0)
 
-    def __init__(self, save: dict, x1: int, x2: int, y1: int):
+    def __init__(self, save: dict, x1: float, x2: float, y1: float, display: pygame.Surface):
         """
         Initialises the DialogueState.
         :param save: Dictionary of save file attributes.
@@ -36,7 +36,8 @@ class DialogueState:
         self.root = None
         self.screens = []  # all 'screen' ET.Elements in the current tree
         self.para_groups = []  # CharacterGroups
-        self.variables = {}  # state of play variables
+        self.save = save  # state of play variables
+        self.display = display
         self.millis_since = 0  # milliseconds since the last character blit
         # display
         self.bg_colour = (255, 255, 255)  # the current background colour
@@ -137,7 +138,7 @@ class DialogueState:
                     # animating spaces doesn't feel right, so we don't
                     should_anim = ch == ' '
                     char = Characters.Character(self.DEFAULT_CHAR_COL, ch, self.FONT, (top, left), char_i, line,
-                                                phrase_group, should_anim)
+                                                phrase_group, should_anim, self.display)
                     count_width += char.rect.width
                     para_group.add(char)
                     char_i += 1
@@ -169,9 +170,6 @@ class DialogueState:
             self.next_screen()
 
     def update(self):
-        # Go through each character group in paragraph_groups (up to paragraph) and call the update function
+        """ Go through each CharacterGroup in para_groups and call their update functions. """
+
         return
-
-
-if __name__ == "__main__":
-    d = DialogueState({}, 640 / 4 - 25, 640 / 2 + 640 / 4 - 25, 1)

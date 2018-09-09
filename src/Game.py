@@ -15,19 +15,28 @@ class Game:
     FPS = 60
     WH = (640, 480)
     BG_COLOUR = (128, 128, 128)
+    # game box
+    X_OFFSET = 25
+    Y_OFFSET = 1
+    X1 = WH[0] / 4 - X_OFFSET
+    X2 = WH[0] / 2 + WH[0] / 4 - X_OFFSET
+    Y1 = Y_OFFSET
+    Y2 = WH[1] - Y_OFFSET
     # key constants
-    KEY_ENTER = 13
-    KEY_SPACE = -1
+    KEY_ENTER = pygame.K_RETURN
+    KEY_SPACE = pygame.K_SPACE
 
     def __init__(self):
         """ Initialises everything for the first time. """
-        self.state = DialogueState
+        self.save = self.load()
         # display
         self.display = pygame.display.set_mode(self.WH)
         self.clock = pygame.time.Clock()
+        # dialogue state
+        self.state = DialogueState(self.save, self.X1, self.X2, self.Y1, self.display)
 
-    def load(self):
-        pass
+    def load(self) -> dict:
+        return {}
 
     def main(self):
         """ Initiates the main game loop. """
@@ -56,4 +65,9 @@ class Game:
 
 if __name__ == "__main__":
     game = Game()
-    game.main()
+    for spr in game.state.para_groups[0]:
+        print(spr.char, end="", flush=True)
+    game.state.next_paragraph()
+    for spr in game.state.para_groups[0]:
+        print(spr.char, end="", flush=True)
+    #game.main()
