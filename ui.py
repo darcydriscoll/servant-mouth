@@ -291,7 +291,7 @@ class GroupCharacters(pygame.sprite.Group):
                 self.skip = not self.skip
         # No more characters to animate - Phrase selection
         else:
-            millis = current_milli
+            millis = current_millis
             self.animating = False
             # Hover
             coord = pygame.mouse.get_pos()

@@ -14,7 +14,7 @@ class Game:
     """ Main game class. """
     FPS = 60
     WH = (640, 480)
-    BG_COLOUR = (128, 128, 128)
+    BG_COLOUR = (0, 0, 0)
     # game box
     X_OFFSET = 25
     Y_OFFSET = 1
@@ -40,22 +40,27 @@ class Game:
 
     def main(self):
         """ Initiates the main game loop. """
-        self.event_handling()
-        self.update()
-        self.blit()
-        # enforce FPS and flip display
-        self.clock.tick()
-        self.display.flip()
+        self.state.millis_since = pygame.time.get_ticks()
+        while True:
+            self.event_handling()
+            self.update()
+            self.blit()
+            # enforce FPS and flip display
+            self.clock.tick(self.FPS)
+            pygame.display.flip()
 
     def event_handling(self):
         """
-        Main event handling function.
-        Handles top-level events and calls to other event functions.
+        Main event handling function. Handles top-level events and calls to other event functions.
         """
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                sys.exit()
 
     def update(self):
         """ Updates the states of everything. """
         # background
+        self.display.fill(self.BG_COLOUR)
         # everything else
         self.state.update()
 
@@ -65,9 +70,12 @@ class Game:
 
 if __name__ == "__main__":
     game = Game()
-    for spr in game.state.para_groups[0]:
-        print(spr.char, end="", flush=True)
-    game.state.next_paragraph()
-    for spr in game.state.para_groups[0]:
-        print(spr.char, end="", flush=True)
-    #game.main()
+    # for spr in game.state.para_groups[0]:
+    #     print(spr.char, end="", flush=True)
+    # print()
+    # for spr in game.state.para_groups[0]:
+    #     print(spr.char + ": " + str(spr.should_anim))
+    # game.state.next_paragraph()
+    # for spr in game.state.para_groups[0]:
+    #     print(spr.char, end="", flush=True)
+    game.main()
