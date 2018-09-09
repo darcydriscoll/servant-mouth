@@ -35,7 +35,7 @@ class DialogueState:
         """
         self.root = None
         self.screens = []  # all 'screen' ET.Elements in the current tree
-        self.paragraph_groups = []  # CharacterGroups
+        self.para_groups = []  # CharacterGroups
         self.variables = {}  # state of play variables
         self.millis_since = 0  # milliseconds since the last character blit
         # display
@@ -52,7 +52,6 @@ class DialogueState:
 
         self.load(save)
         self.new_xml('test2')
-        self.next_screen()
         return
 
     def load(self, save: dict):
@@ -60,17 +59,23 @@ class DialogueState:
         pass
 
     def new_xml(self, name: str) -> bool:
-        """ Tries to find and store the xml file with the requested name. """
+        """
+        Tries to find and store the xml file with the requested name.
+        Then, gets the screens and initial paragraphs from this xml.
+        """
         try:
-            tree = et.parse(path.join('src', 'dialogue', '{0}.xml'.format(name)))
-            self.root = tree.getRoot()
+            tree = et.parse(path.join('dialogue', '{0}.xml'.format(name)))
+            self.root = tree.getroot()
+            self.screens = self.root.find('screens').findall('screen')
+            self.create_para_groups()
             return True
         except FileNotFoundError:
-            return False
+            raise FileNotFoundError("Invalid xml file name specified.", name)
+            # return False TODO
 
     def eval_tag(self, paragraph: et.Element) -> ([Characters.Phrase], str):
         """ Calls a slave possibly-recursive function to evaluate tags of a paragraph element. """
-        def recurse(phrases, i, text, phrase_start) -> ([Characters.Phrase], int, str, int):
+        def recurse(phrases, i, text, phrase_start, elements) -> ([Characters.Phrase], int, str, int):
             """
             Evaluates the tags of a paragraph element.
             Recurses on if-statements if the required conditional is met.
@@ -78,9 +83,11 @@ class DialogueState:
             :param i: The current index in the paragraph.
             :param text: The current text in the paragraph.
             :param phrase_start: The index that the current phrase starts at.
+            :param elements: Elements to iterator over.
+            :type elements: iter
             :return: The parameters as altered by the tags iterated in eval_tag's paragraph.
             """
-            for el in paragraph:
+            for el in elements:
                 tag = el.tag
                 log.debug("Tag: {}".format(tag))
                 # tag cases
@@ -94,15 +101,15 @@ class DialogueState:
                     i += len(el.text)
                     text += el.text
                 elif tag == 'if':
-                    phrases, i, text, phrase_start = recurse(phrases, i, text, el.findall('*'))
+                    phrases, i, text, phrase_start = recurse(phrases, i, text, phrase_start, el.findall('*'))
                 else:
                     raise ValueError('Unsupported tag', tag, el)
             return phrases, i, text, phrase_start
 
-        return recurse([], 0, '', None)[0::2]  # first and third arguments
+        return recurse([], 0, '', None, paragraph)[0::2]  # first and third arguments
 
-    def create_paragraph_groups(self):
-        """ Replaces self.paragraph_groups with groups based on the current self.screen value. """
+    def create_para_groups(self):
+        """ Replaces self.para_groups with groups based on the current self.screen value. """
         paragraphs = self.screens[self.s].findall('para')
         para_offset = 0
         new_paragraph_groups = []
@@ -111,7 +118,7 @@ class DialogueState:
             phrases, text = self.eval_tag(paragraph.findall('*'))
             wrap = text_wrap(self.FONT, text, self.MAX_WIDTH)
             text_height = self.FONT.get_rect(text).height
-            paragraph_group = Characters.GroupCharacters(phrases, 30)
+            para_group = Characters.GroupCharacters(phrases, 30)
             char_i = 0
             top = 0
             for line, string in enumerate(wrap):
@@ -122,8 +129,7 @@ class DialogueState:
                     left = count_width + self.LEFT_OFFSET
                     # character indexed in phrase?
                     for phrase in phrases:
-                        bounds = phrase.bounds
-                        if bounds[1] >= char_i >= bounds[0]:
+                        if phrase.start <= char_i <= phrase.end:
                             phrase_group = phrase
                             break  # no overlapping phrases
                     else:
@@ -133,23 +139,25 @@ class DialogueState:
                     char = Characters.Character(self.DEFAULT_CHAR_COL, ch, self.FONT, (top, left), char_i, line,
                                                 phrase_group, should_anim)
                     count_width += char.rect.width
-                    paragraph_group.add(char)
+                    para_group.add(char)
                     char_i += 1
                 char_i += 1  # TODO - why this one?
-            new_paragraph_groups.append(paragraph_group)
+            new_paragraph_groups.append(para_group)
             para_offset = top + text_height
 
-        self.paragraph_groups = new_paragraph_groups
+        self.para_groups = new_paragraph_groups
         self.p = 0
 
     def next_screen(self):
         """ Finds the next screen and updates the state. """
+        self.s += 1
         if self.s >= len(self.screens):
-            raise IndexError('Screen index out of range. There should have been an event to change the xml file by'
+            raise IndexError('Screen index out of range. There should have been an event to change the xml file by '
                              'now.', 'screen', 'screens')
         else:
-            self.s += 1
-            self.create_paragraph_groups()
+            log.debug("NEXT SCREEN")
+            self.p = 0
+            self.create_para_groups()
 
     def next_paragraph(self):
         """
@@ -157,7 +165,13 @@ class DialogueState:
         If there is no next paragraph, next_screen() is called.
         """
         self.p += 1
+        if self.p >= len(self.para_groups):
+            self.next_screen()
 
     def update(self):
         # Go through each character group in paragraph_groups (up to paragraph) and call the update function
         return
+
+
+if __name__ == "__main__":
+    d = DialogueState({}, 640 / 4 - 25, 640 / 2 + 640 / 4 - 25, 1)
