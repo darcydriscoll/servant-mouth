@@ -42,9 +42,10 @@ class DialogueState:
         # display and animation
         self.speed = 30
         # character positioning
-        self.LEFT_OFFSET = x1 + 5
-        self.TOP_OFFSET = y1 + 5  # FIXME - this is probably too much
-        self.MAX_WIDTH = x2 - self.LEFT_OFFSET  # FIXME - why left_offset? why not x2 - 5?
+        self.PAD = 10
+        self.LEFT_OFFSET = x1 + self.PAD
+        self.TOP_OFFSET = y1 + self.PAD
+        self.MAX_WIDTH = x2 - x1 - (self.PAD * 2)
         # indices
         self.p = 0  # paragraph
         self.s = 0  # screen
@@ -173,3 +174,11 @@ class DialogueState:
         """ Update all currently on-screen paragraphs. """
         for i in range(self.p + 1):
             self.millis_since = self.para_groups[i].update(self.millis_since)
+
+    def blit(self):
+        """ Blit all currently on-screen paragraphs and their characters. """
+        for para in self.para_groups[:self.p + 1]:
+            for ch in para.sprites()[:para.i + 1]:
+                ch.update()
+        pygame.draw.line(self.display, (255, 0, 0), (self.LEFT_OFFSET, 300), (self.LEFT_OFFSET + self.MAX_WIDTH, 300), 1)
+        # TODO - phrases

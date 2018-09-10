@@ -16,12 +16,14 @@ class Game:
     WH = (640, 480)
     BG_COLOUR = (0, 0, 0)
     # game box
-    X_OFFSET = 25
-    Y_OFFSET = 1
+    X_OFFSET = 0
+    Y_OFFSET = 5
     X1 = WH[0] / 4 - X_OFFSET
     X2 = WH[0] / 2 + WH[0] / 4 - X_OFFSET
     Y1 = Y_OFFSET
     Y2 = WH[1] - Y_OFFSET
+    POINTLIST = [(X1, Y1), (X2, Y1), (X2, Y2), (X1, Y2)]
+    BOXWIDTH = 1
     # key constants
     KEY_ENTER = pygame.K_RETURN
     KEY_SPACE = pygame.K_SPACE
@@ -50,9 +52,7 @@ class Game:
             pygame.display.flip()
 
     def event_handling(self):
-        """
-        Main event handling function. Handles top-level events and calls to other event functions.
-        """
+        """ Main event handling function. Handles top-level events and calls to other event functions. """
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 sys.exit()
@@ -60,12 +60,20 @@ class Game:
     def update(self):
         """ Updates the states of everything. """
         # background
-        self.display.fill(self.BG_COLOUR)
         # everything else
         self.state.update()
 
     def blit(self):
         """ Blits everything to the display. """
+        # background
+        self.display.fill(self.BG_COLOUR)
+        # dialogue
+        self.state.blit()
+        # dialogue box
+        pygame.draw.lines(self.display, (255, 255, 255), True, self.POINTLIST, self.BOXWIDTH)
+        # buttons?
+        # inventory items
+        # menu button
 
 
 if __name__ == "__main__":

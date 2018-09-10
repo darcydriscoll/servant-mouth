@@ -95,16 +95,16 @@ class GroupCharacters(pygame.sprite.Group):
         self.phrases = phrases
         self.highlights = []
         # animating
-        self.i = 0
+        self.i = -1
         self.pause_punctuation = True  # whether we should pause if this is punctuation
         # states
         self.animating = True
         self.phrase_hovered = None
         self.phrase_selected = None
         # sound
-        self.sound = pygame.mixer.Sound(path.join('assets', 'sound', 'sfx', 'text-blip3.ogg'))
+        self.sound = pygame.mixer.Sound(path.join('assets', 'sound', 'sfx', 'cowbell-short.ogg'))
         self.sound.set_volume(0.1)
-        self.skip = True
+        self.skip = False
         # logging
         log.basicConfig(stream=sys.stderr, level=log.DEBUG)
 
@@ -131,22 +131,21 @@ class GroupCharacters(pygame.sprite.Group):
         millis = millis_since
         current_millis = pygame.time.get_ticks()
         # more characters to animate?
-        if self.i < len(self):
+        if self.i + 1 < len(self):
             diff = current_millis - millis_since
             # enough time passed to animate?
             if diff >= self.speed:
+                self.i += 1
                 if not chars[self.i].should_anim:
-                    self.skip = True  # if we're about to animate the start of a word, we want it to sound
+                    pass#self.skip = False  # if we're about to animate the start of a word, we want it to sound TODO - do we want this or not?
                 overlap = int(diff / self.speed)  # how many characters we need to animate
                 try:
                     for x in range(overlap):
                         while not chars[self.i].should_anim:
                             self.i += 1
-                        chars[self.i].update()
                         self.speed = self.base_speed
-                        self.i += 1
                         # punctuation pause
-                        if self.pause_punctuation and chars[self.i - 1].char in self.PUNCTUATION:
+                        if self.pause_punctuation and chars[self.i].char in self.PUNCTUATION:
                             self.speed += 150  # TODO - should be different depending on punctuation mark
                             break  # so we pause w/o animating any more characters
                 except IndexError:
@@ -161,11 +160,13 @@ class GroupCharacters(pygame.sprite.Group):
         else:
             self.phrase_selection()
             millis = current_millis
-        # previous characters
-        for ch in chars[:self.i]:
-            ch.update()
 
         return millis
+
+    def blit(self):
+        # characters
+        for ch in self.sprites()[:self.i + 1]:
+            ch.update()
 
     def phrase_selection(self):
         pass
