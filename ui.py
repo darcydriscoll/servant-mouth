@@ -275,7 +275,7 @@ class GroupCharacters(pygame.sprite.Group):
                     try:
                         while not chars[self.i].should_anim:
                             self.i += 1
-                        chars[self.i].update(self.screen)
+                        chars[self.i].blit(self.screen)
                         self.i += 1
                         self.speed = self.base_speed
                         # Punctuation
@@ -341,7 +341,7 @@ class GroupCharacters(pygame.sprite.Group):
                     self.phrase_selected = None
         # prev. characters
         for ch in chars[:self.i]:
-            ch.update(self.screen)
+            ch.blit(self.screen)
         return millis
         
 class Phrase(pygame.sprite.Group):

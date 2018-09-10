@@ -41,6 +41,8 @@ class DialogueState:
         self.millis_since = None # milliseconds since the last character blit
         # display and animation
         self.speed = 30
+        self.show_debug = False
+        self.animating = True
         # character positioning
         self.PAD = 10
         self.LEFT_OFFSET = x1 + self.PAD
@@ -172,13 +174,25 @@ class DialogueState:
 
     def update(self):
         """ Update all currently on-screen paragraphs. """
-        for i in range(self.p + 1):
-            self.millis_since = self.para_groups[i].update(self.millis_since)
+        for para in self.para_groups[:self.p + 1]:
+            self.millis_since = para.update(self.millis_since)
+        self.animating = self.para_groups[self.p].animating
+
+    def mouse_events(self, coord, mousestate):
+        if not self.animating:
+            for para in self.para_groups[:self.p + 1]:
+                para.mouse_events(coord, mousestate)
+
+    def debug_blits(self):
+        if self.show_debug:
+            pygame.draw.line(self.display, (255, 0, 0), (self.LEFT_OFFSET, 300), (self.LEFT_OFFSET + self.MAX_WIDTH, 300), 1)
 
     def blit(self):
         """ Blit all currently on-screen paragraphs and their characters. """
+        # characters
         for para in self.para_groups[:self.p + 1]:
             for ch in para.sprites()[:para.i + 1]:
-                ch.update()
-        pygame.draw.line(self.display, (255, 0, 0), (self.LEFT_OFFSET, 300), (self.LEFT_OFFSET + self.MAX_WIDTH, 300), 1)
+                ch.blit()
+        self.debug_blits()
+        # debug
         # TODO - phrases

@@ -76,7 +76,7 @@ class Character(pygame.sprite.Sprite):
         self.image = rend[0].convert_alpha()  # TODO - potentially very inefficient - change to convert w/ specified background?
         self.rect = rend[1]
 
-    def update(self):
+    def blit(self):
         """ Blits the Character to the display with any effects. """
         self.display.blit(self.image, self.rect)
         # add effects here #
@@ -112,7 +112,8 @@ class GroupCharacters(pygame.sprite.Group):
         self.sound.play()
 
     def blit_highlights(self):
-        pass
+        for h in self.highlights:
+            self.display.blit(h[0], h[1])
 
     def draw_highlight(self):
         pass
@@ -158,23 +159,38 @@ class GroupCharacters(pygame.sprite.Group):
                 millis = current_millis
         # no more animation - now phrase selection
         else:
-            self.phrase_selection()
+            self.animating = False
             millis = current_millis
 
         return millis
 
+    def mouse_events(self, coord, mousestate):
+        # phrases
+        for ch in self:
+            if ch.rect.collidepoint(coord):
+                self.phrase_selection(mousestate)
+                break
+
+    def phrase_hovering(self):
+        pass
+
+    def phrase_selection(self, mousestate):
+        self.phrase_hovering()
+        # selection
+
     def blit(self):
         # characters
         for ch in self.sprites()[:self.i + 1]:
-            ch.update()
-
-    def phrase_selection(self):
-        pass
+            ch.blit()
 
 
 class Phrase(pygame.sprite.Group):
     def __init__(self, start, end):
         super().__init__()
+        # bounds
         self.start = start
         self.end = end
-        pass
+        # states
+        self.known = False
+        # colour
+        self.colour = (0, 0, 255)

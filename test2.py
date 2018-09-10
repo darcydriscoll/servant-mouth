@@ -188,7 +188,7 @@ def main():
         pygame.draw.lines(screen,False,(0,0,0),pointlist,5)
         # blit previous text
         for i in range(para):
-            char_groups[i].update(millis)
+            char_groups[i].blit(millis)
         # blit text
         millis = char_groups[para].update(millis)
         # blit buttons
