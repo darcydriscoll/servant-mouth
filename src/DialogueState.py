@@ -43,6 +43,10 @@ class DialogueState:
         self.speed = 30
         self.show_debug = False
         self.animating = True
+        # phrases
+        self.highlights = []
+        self.hovered_phrase = None
+        self.selected_phrase = None
         # character positioning
         self.PAD = 10
         self.LEFT_OFFSET = x1 + self.PAD
@@ -178,10 +182,116 @@ class DialogueState:
             self.millis_since = para.update(self.millis_since)
         self.animating = self.para_groups[self.p].animating
 
+    def blit_highlights(self):
+        """ Blits each highlight in highlights. """
+        for h in self.highlights:
+            self.display.blit(h[0], h[1])
+
+    def draw_highlight(self, top_left, bottom_right, colour):
+        """ Returns the surface and rectangle for a given highlight. """
+        x = bottom_right[0] - top_left[0]
+        y = bottom_right[1] - top_left[1]
+        surf = pygame.Surface((x, y))
+        surf.fill(colour)
+        return surf, surf.get_rect(topleft=top_left)
+
+    def create_highlights(self, phrase):
+        """ Given a phrase, create highlights for the phrase. """
+        self.highlights = []
+        sprites = phrase.sprites()
+        top_left = sprites[0].rect.topleft
+        bottom_right = sprites[0].rect.bottomright
+        line = sprites[0].line
+        for s in sprites[1:]:
+            if s.line > line:
+                # append highlight
+                highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
+                self.highlights.append(highlight)
+                # resetting/updating vars
+                line = s.line
+                top_left = s.rect.topleft
+            bottom_right = s.rect.bottomright
+        # append final highlight
+        highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
+        self.highlights.append(highlight)
+
+    def phrase_hovering(self, phrase):
+        """ Controls phrase hovering actions. """
+        if self.hovered_phrase != phrase:
+            self.hovered_phrase = phrase
+            if self.hovered_phrase.known:
+                self.create_highlights(phrase)
+
+    def reset_phrase(self):
+        self.selected_phrase.reset_colour()
+        self.selected_phrase = None
+
+    def phrase_selection(self, phrase, mousestate):
+        """
+        Handles phrase selection.
+        :param phrase
+        :param mousestate:
+            3: MOUSEBUTTONUP
+            2: held after MOUSEBUTTONDOWN
+            1: MOUSEBUTTONDOWN
+            0: nothing
+        """
+        if mousestate == 1:
+            phrase.colour = (255, 0, 0)
+            # creating highlights if the phrase is known
+            self.hovered_phrase = None
+            self.phrase_hovering(phrase)
+            self.selected_phrase = phrase
+        elif mousestate == 3:
+            if self.selected_phrase == phrase:
+                phrase.known = True
+                self.hovered_phrase = None
+                pass  # TODO - phrase selected
+                # resetting colour
+                self.reset_phrase()
+            else:
+                # phrase selection failed - resetting
+                self.reset_phrase()
+
+    def phrase_interaction(self, coord, mousestate):
+        """
+        Goes through each paragraph and runs phrase functions on the first character at the given coordinate.
+        If no such character is found, resets hovering and selection variables.
+        :param coord of the mouse.
+        :param mousestate:
+            3: MOUSEBUTTONUP
+            2: held after MOUSEBUTTONDOWN
+            1: MOUSEBUTTONDOWN
+            0: nothing
+        """
+        for para in self.para_groups[:self.p + 1]:
+            for ch in para:
+                phrase = ch.phrase
+                if ch.phrase is not None and ch.rect.collidepoint(coord):
+                    self.phrase_selection(phrase, mousestate)
+                    self.phrase_hovering(phrase)
+                    return
+            else:
+                # removing highlights
+                self.hovered_phrase = None
+                self.highlights = []
+                # if the mouse has been released, we don't have a selected phrase anymore
+                if mousestate == 3:
+                    if self.selected_phrase is not None:
+                        self.reset_phrase()
+
     def mouse_events(self, coord, mousestate):
+        """
+        Handles mouse events for the dialogue state.
+        :param coord of the mouse.
+        :param mousestate:
+            3: MOUSEBUTTONUP
+            2: held after MOUSEBUTTONDOWN
+            1: MOUSEBUTTONDOWN
+            0: nothing
+        """
         if not self.animating:
-            for para in self.para_groups[:self.p + 1]:
-                para.mouse_events(coord, mousestate)
+            self.phrase_interaction(coord, mousestate)
 
     def debug_blits(self):
         if self.show_debug:
@@ -189,10 +299,12 @@ class DialogueState:
 
     def blit(self):
         """ Blit all currently on-screen paragraphs and their characters. """
+        # phrase highlights
+        self.blit_highlights()
         # characters
         for para in self.para_groups[:self.p + 1]:
             for ch in para.sprites()[:para.i + 1]:
                 ch.blit()
-        self.debug_blits()
         # debug
+        self.debug_blits()
         # TODO - phrases

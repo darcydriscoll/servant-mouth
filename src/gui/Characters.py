@@ -99,8 +99,6 @@ class GroupCharacters(pygame.sprite.Group):
         self.pause_punctuation = True  # whether we should pause if this is punctuation
         # states
         self.animating = True
-        self.phrase_hovered = None
-        self.phrase_selected = None
         # sound
         self.sound = pygame.mixer.Sound(path.join('assets', 'sound', 'sfx', 'cowbell-short.ogg'))
         self.sound.set_volume(0.1)
@@ -110,16 +108,6 @@ class GroupCharacters(pygame.sprite.Group):
 
     def play_sound(self):
         self.sound.play()
-
-    def blit_highlights(self):
-        for h in self.highlights:
-            self.display.blit(h[0], h[1])
-
-    def draw_highlight(self):
-        pass
-
-    def is_phrase_collision(self):
-        pass
 
     def update(self, millis_since):
         """
@@ -157,26 +145,12 @@ class GroupCharacters(pygame.sprite.Group):
                 self.skip = not self.skip
 
                 millis = current_millis
-        # no more animation - now phrase selection
+        # no more animation
         else:
             self.animating = False
             millis = current_millis
 
         return millis
-
-    def mouse_events(self, coord, mousestate):
-        # phrases
-        for ch in self:
-            if ch.rect.collidepoint(coord):
-                self.phrase_selection(mousestate)
-                break
-
-    def phrase_hovering(self):
-        pass
-
-    def phrase_selection(self, mousestate):
-        self.phrase_hovering()
-        # selection
 
     def blit(self):
         # characters
@@ -193,4 +167,8 @@ class Phrase(pygame.sprite.Group):
         # states
         self.known = False
         # colour
-        self.colour = (0, 0, 255)
+        self.base_colour = (0, 0, 255)
+        self.colour = self.base_colour
+
+    def reset_colour(self):
+        self.colour = self.base_colour

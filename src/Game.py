@@ -57,15 +57,23 @@ class Game:
 
     def event_handling(self):
         """ Main event handling function. Handles top-level events and calls to other event functions. """
+        mouse_click = False
         for e in pygame.event.get():
             # quit
             if e.type == pygame.QUIT:
                 sys.exit()
             # keys
             # mouse
-            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+            elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 self.mouse_events(1)
+                mouse_click = True
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
+                self.mouse_events(3)
+                mouse_click = True
+        # button held after MOUSEBUTTONDOWN or not held at all
+        if not mouse_click:
+            mouse_held = pygame.mouse.get_pressed()[0]
+            if mouse_held:
                 self.mouse_events(2)
             else:
                 self.mouse_events(0)
