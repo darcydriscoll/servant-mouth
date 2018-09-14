@@ -155,7 +155,7 @@ class DialogueState:
                     char_i += 1
                 char_i += 1  # TODO - why this one?
             new_paragraph_groups.append(para_group)
-            para_offset = top + text_height
+            para_offset = top + text_height / 2
 
         self.para_groups = new_paragraph_groups
         self.p = 0
