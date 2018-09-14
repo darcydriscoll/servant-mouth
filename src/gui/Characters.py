@@ -109,6 +109,10 @@ class GroupCharacters(pygame.sprite.Group):
     def play_sound(self):
         self.sound.play()
 
+    def max_index(self):
+        """ Sets the index to refer to the last Character. """
+        self.i = len(self) - 1
+
     def update(self, millis_since):
         """
         Animates each Character in this Group. Calls to phrase_selection() if there's nothing to animate.
@@ -138,7 +142,7 @@ class GroupCharacters(pygame.sprite.Group):
                             self.speed += 150  # TODO - should be different depending on punctuation mark
                             break  # so we pause w/o animating any more characters
                 except IndexError:
-                    pass
+                    self.max_index()
                 # sound
                 if not self.skip:
                     self.sound.play()
@@ -148,7 +152,6 @@ class GroupCharacters(pygame.sprite.Group):
         # no more animation
         else:
             self.animating = False
-            millis = current_millis
 
         return millis
 

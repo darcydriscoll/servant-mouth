@@ -82,6 +82,9 @@ class DialogueState:
             raise FileNotFoundError("Invalid xml file name specified.", name)
             # return False TODO
 
+    def update_millis_since(self):
+        self.millis_since = pygame.time.get_ticks()
+
     def eval_tag(self, paragraph: et.Element) -> ([Characters.Phrase], str):
         """ Calls a slave possibly-recursive function to evaluate tags of a paragraph element. """
         def recurse(phrases, i, text, phrase_start, elements) -> ([Characters.Phrase], int, str, int):
@@ -176,12 +179,7 @@ class DialogueState:
         self.p += 1
         if self.p >= len(self.para_groups):
             self.next_screen()
-
-    def update(self):
-        """ Update all currently on-screen paragraphs. """
-        for para in self.para_groups[:self.p + 1]:
-            self.millis_since = para.update(self.millis_since)
-        self.animating = self.para_groups[self.p].animating
+        self.update_millis_since()
 
     def blit_highlights(self):
         """ Blits each highlight in highlights. """
@@ -275,6 +273,12 @@ class DialogueState:
     def debug_blits(self):
         if self.show_debug:
             pygame.draw.line(self.display, (255, 0, 0), (self.LEFT_OFFSET, 300), (self.LEFT_OFFSET + self.MAX_WIDTH, 300), 1)
+
+    def update(self):
+        """ Update all currently on-screen paragraphs. """
+        for para in self.para_groups[:self.p + 1]:
+            self.millis_since = para.update(self.millis_since)
+        self.animating = self.para_groups[self.p].animating
 
     def blit(self):
         """ Blit all currently on-screen paragraphs and their characters. """
