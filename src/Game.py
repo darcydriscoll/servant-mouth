@@ -5,6 +5,8 @@
 
 import pygame
 import pygame.freetype
+
+from src.Mouse import MouseState
 from src.DialogueState import *
 
 pygame.init()
@@ -51,7 +53,7 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.flip()
 
-    def mouse_events(self, mousestate):
+    def mouse_events(self, mousestate: MouseState):
         coord = pygame.mouse.get_pos()
         self.state.mouse_events(coord, mousestate)
 
@@ -65,18 +67,17 @@ class Game:
             # keys
             # mouse
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                self.mouse_events(1)
+                self.mouse_events(MouseState.DOWN)
                 mouse_click = True
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
-                self.mouse_events(3)
+                self.mouse_events(MouseState.UP)
                 mouse_click = True
         # button held after MOUSEBUTTONDOWN or not held at all
         if not mouse_click:
-            mouse_held = pygame.mouse.get_pressed()[0]
-            if mouse_held:
-                self.mouse_events(2)
+            if pygame.mouse.get_pressed()[0]:
+                self.mouse_events(MouseState.HELD)
             else:
-                self.mouse_events(0)
+                self.mouse_events(MouseState.NONE)
 
     def update(self):
         """ Updates the states of everything. """

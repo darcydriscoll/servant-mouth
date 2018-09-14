@@ -10,6 +10,7 @@ import xml.etree.ElementTree as et
 import logging as log
 import sys
 
+from src.Mouse import MouseState
 import src.gui.Characters as Characters
 from src.StringManip import text_wrap
 
@@ -226,43 +227,29 @@ class DialogueState:
         self.selected_phrase.reset_colour()
         self.selected_phrase = None
 
-    def phrase_selection(self, phrase, mousestate):
-        """
-        Handles phrase selection.
-        :param phrase
-        :param mousestate:
-            3: MOUSEBUTTONUP
-            2: held after MOUSEBUTTONDOWN
-            1: MOUSEBUTTONDOWN
-            0: nothing
-        """
-        if mousestate == 1:
+    def phrase_selection(self, phrase, mousestate: MouseState):
+        """ Handles phrase selection. """
+        if mousestate == MouseState.DOWN:
             phrase.colour = (255, 0, 0)
             # creating highlights if the phrase is known
             self.hovered_phrase = None
             self.phrase_hovering(phrase)
             self.selected_phrase = phrase
-        elif mousestate == 3:
+        elif mousestate == MouseState.UP:
             if self.selected_phrase == phrase:
                 phrase.known = True
                 self.hovered_phrase = None
                 pass  # TODO - phrase selected
                 # resetting colour
-                self.reset_phrase()
+                # self.reset_phrase()
             else:
                 # phrase selection failed - resetting
                 self.reset_phrase()
 
-    def phrase_interaction(self, coord, mousestate):
+    def phrase_interaction(self, coord, mousestate: MouseState):
         """
         Goes through each paragraph and runs phrase functions on the first character at the given coordinate.
         If no such character is found, resets hovering and selection variables.
-        :param coord of the mouse.
-        :param mousestate:
-            3: MOUSEBUTTONUP
-            2: held after MOUSEBUTTONDOWN
-            1: MOUSEBUTTONDOWN
-            0: nothing
         """
         for para in self.para_groups[:self.p + 1]:
             for ch in para:
@@ -276,20 +263,12 @@ class DialogueState:
                 self.hovered_phrase = None
                 self.highlights = []
                 # if the mouse has been released, we don't have a selected phrase anymore
-                if mousestate == 3:
+                if mousestate == MouseState.UP:
                     if self.selected_phrase is not None:
                         self.reset_phrase()
 
-    def mouse_events(self, coord, mousestate):
-        """
-        Handles mouse events for the dialogue state.
-        :param coord of the mouse.
-        :param mousestate:
-            3: MOUSEBUTTONUP
-            2: held after MOUSEBUTTONDOWN
-            1: MOUSEBUTTONDOWN
-            0: nothing
-        """
+    def mouse_events(self, coord, mousestate: MouseState):
+        """ Handles mouse events for the dialogue state. """
         if not self.animating:
             self.phrase_interaction(coord, mousestate)
 
