@@ -8,6 +8,7 @@
         <screen>
             <para>
                 <phrasestart>
+                    <phraseload>test3</phraseload>
                 </phrasestart>
                 <content>This is a phrase.</content>
                 <phraseend/>

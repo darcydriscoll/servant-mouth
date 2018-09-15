@@ -39,7 +39,7 @@ class DialogueState:
         self.para_groups = []  # CharacterGroups
         self.save = save  # state of play variables
         self.display = display
-        self.millis_since = None # milliseconds since the last character blit
+        self.millis_since = None  # milliseconds since the last character blit
         # display and animation
         self.speed = 30
         self.show_debug = False
@@ -56,11 +56,14 @@ class DialogueState:
         # indices
         self.p = 0  # paragraph
         self.s = 0  # screen
+        # states
+        self.xml = 'test2'
+        self.xml_changed = False
         # logging
         log.basicConfig(stream=sys.stderr, level=log.DEBUG)
 
         self.load(save)
-        self.new_xml('test2')
+        self.new_xml(self.xml)
         return
 
     def load(self, save: dict):
@@ -77,6 +80,10 @@ class DialogueState:
             self.root = tree.getroot()
             self.screens = self.root.find('screens').findall('screen')
             self.create_para_groups()
+            # setting vars
+            self.s = 0
+            self.highlights = []
+            self.xml = name
             return True
         except FileNotFoundError:
             raise FileNotFoundError("Invalid xml file name specified.", name)
@@ -87,7 +94,7 @@ class DialogueState:
 
     def eval_tag(self, paragraph: et.Element) -> ([Characters.Phrase], str):
         """ Calls a slave possibly-recursive function to evaluate tags of a paragraph element. """
-        def recurse(phrases, i, text, phrase_start, elements) -> ([Characters.Phrase], int, str, int):
+        def recurse(phrases, i, text, phrase_start, phrase_xml, elements) -> ([Characters.Phrase], int, str, int):
             """
             Evaluates the tags of a paragraph element.
             Recurses on if-statements if the required conditional is met.
@@ -95,6 +102,7 @@ class DialogueState:
             :param i: The current index in the paragraph.
             :param text: The current text in the paragraph.
             :param phrase_start: The index that the current phrase starts at.
+            :param phrase_xml: The
             :param elements: Elements to iterator over.
             :type elements: iter
             :return: The parameters as altered by the tags iterated in eval_tag's paragraph.
@@ -105,20 +113,26 @@ class DialogueState:
                 # tag cases
                 if tag == 'phrasestart':
                     phrase_start = i
+                    phrases, i, text, phrase_start, phrase_xml = \
+                        recurse(phrases, i, text, phrase_start, phrase_xml, el.findall('*'))
+                elif tag == 'phraseload':
+                    phrase_xml = el.text
                 elif tag == 'phraseend':
                     assert phrase_start is not None
-                    phrases.append(Characters.Phrase(phrase_start, i - 1))
+                    phrases.append(Characters.Phrase(phrase_start, i - 1, phrase_xml))
                     phrase_start = None
+                    phrase_xml = None
                 elif tag == 'content':
                     i += len(el.text)
                     text += el.text
                 elif tag == 'if':
-                    phrases, i, text, phrase_start = recurse(phrases, i, text, phrase_start, el.findall('*'))
+                    phrases, i, text, phrase_start, phrase_xml = \
+                        recurse(phrases, i, text, phrase_start, phrase_xml, el.findall('*'))
                 else:
                     raise ValueError('Unsupported tag', tag, el)
-            return phrases, i, text, phrase_start
+            return phrases, i, text, phrase_start, phrase_xml
 
-        return recurse([], 0, '', None, paragraph)[0::2]  # first and third arguments
+        return recurse([], 0, '', None, None, paragraph)[0::2]  # first and third arguments
 
     def create_para_groups(self):
         """ Replaces self.para_groups with groups based on the current self.screen value. """
@@ -127,7 +141,7 @@ class DialogueState:
         new_paragraph_groups = []
         for paragraph in paragraphs:
             # Creating paragraph of Characters
-            phrases, text = self.eval_tag(paragraph.findall('*'))
+            phrases, text, penis = self.eval_tag(paragraph.findall('*'))
             wrap = text_wrap(self.FONT, text, self.MAX_WIDTH)
             text_height = self.FONT.get_rect(text).height
             para_group = Characters.GroupCharacters(self.display, phrases, self.speed)
@@ -162,24 +176,21 @@ class DialogueState:
 
     def next_screen(self):
         """ Finds the next screen and updates the state. """
+        log.debug("NEXT SCREEN")
         self.s += 1
-        if self.s >= len(self.screens):
-            raise IndexError('Screen index out of range. There should have been an event to change the xml file by '
-                             'now.', 'screen', 'screens')
-        else:
-            log.debug("NEXT SCREEN")
-            self.p = 0
-            self.create_para_groups()
+        self.p = 0
+        self.create_para_groups()
 
     def next_paragraph(self):
         """
         Handles the logic for when a new paragraph is requested.
         If there is no next paragraph, next_screen() is called.
         """
-        self.p += 1
-        if self.p >= len(self.para_groups):
-            self.next_screen()
-        self.update_millis_since()
+        if not (self.s == len(self.screens) - 1 and self.p == len(self.para_groups) - 1):
+            self.p += 1
+            if self.p >= len(self.para_groups):
+                self.next_screen()
+            self.update_millis_since()
 
     def blit_highlights(self):
         """ Blits each highlight in highlights. """
@@ -235,9 +246,11 @@ class DialogueState:
             self.selected_phrase = phrase
         elif mousestate == MouseState.UP:
             if self.selected_phrase == phrase:
+                # phrase selected
                 phrase.known = True
                 self.hovered_phrase = None
-                pass  # TODO - phrase selected
+                self.new_xml(phrase.xml)
+                self.xml_changed = True
                 # resetting colour
                 # self.reset_phrase()
             else:
@@ -253,8 +266,8 @@ class DialogueState:
             for ch in para:
                 phrase = ch.phrase
                 if ch.phrase is not None and ch.rect.collidepoint(coord):
-                    self.phrase_selection(phrase, mousestate)
                     self.phrase_hovering(phrase)
+                    self.phrase_selection(phrase, mousestate)
                     return
             else:
                 # removing highlights

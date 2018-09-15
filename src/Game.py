@@ -79,6 +79,10 @@ class Game:
                 mouse_click = True
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 self.mouse_events(MouseState.UP)
+                if not self.state.xml_changed:
+                    self.dialogue_progression()
+                else:
+                    self.state.xml_changed = False
                 mouse_click = True
         # button held after MOUSEBUTTONDOWN or not held at all
         if not mouse_click:

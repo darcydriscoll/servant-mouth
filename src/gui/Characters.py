@@ -162,7 +162,7 @@ class GroupCharacters(pygame.sprite.Group):
 
 
 class Phrase(pygame.sprite.Group):
-    def __init__(self, start, end):
+    def __init__(self, start, end, xml: str):
         super().__init__()
         # bounds
         self.start = start
@@ -172,6 +172,8 @@ class Phrase(pygame.sprite.Group):
         # colour
         self.base_colour = (0, 0, 255)
         self.colour = self.base_colour
+        # load xml
+        self.xml = xml
 
     def reset_colour(self):
         self.colour = self.base_colour
