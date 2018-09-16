@@ -126,13 +126,18 @@ class DialogueState:
                     i += len(el.text)
                     text += el.text
                 elif tag == 'if':
-                    phrases, i, text, phrase_start, phrase_xml = \
-                        recurse(phrases, i, text, phrase_start, phrase_xml, el.findall('*'))
+                    try:
+                        condition = self.save.get(el.attrib['var']) == el.attrib['value']
+                    except KeyError:
+                        raise KeyError('xml conditional malformed.')
+                    if condition:
+                        phrases, i, text, phrase_start, phrase_xml = \
+                            recurse(phrases, i, text, phrase_start, phrase_xml, el.findall('*'))
                 else:
                     raise ValueError('Unsupported tag', tag, el)
             return phrases, i, text, phrase_start, phrase_xml
 
-        return recurse([], 0, '', None, None, paragraph)[0::2]  # first and third arguments
+        return recurse([], 0, '', None, None, paragraph)[:3:2]  # first and third arguments
 
     def create_para_groups(self):
         """ Replaces self.para_groups with groups based on the current self.screen value. """
@@ -141,7 +146,9 @@ class DialogueState:
         new_paragraph_groups = []
         for paragraph in paragraphs:
             # Creating paragraph of Characters
-            phrases, text, penis = self.eval_tag(paragraph.findall('*'))
+            phrases, text = self.eval_tag(paragraph.findall('*'))
+            if text == '':
+                continue
             wrap = text_wrap(self.FONT, text, self.MAX_WIDTH)
             text_height = self.FONT.get_rect(text).height
             para_group = Characters.GroupCharacters(self.display, phrases, self.speed)

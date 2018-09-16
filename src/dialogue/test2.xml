@@ -28,7 +28,7 @@
                 <content> This is a new content after the previous. Anything happen?</content>
             </para>
             <para>
-                <if>
+                <if var="horace" value="1">
                     <content>Kiss me, Horace. Kiss me.</content>
                 </if>
             </para>

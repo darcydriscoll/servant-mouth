@@ -5,6 +5,7 @@
 
 from pygame import K_RETURN, K_SPACE
 import pygame.freetype
+from os import path
 
 from src.Mouse import MouseState
 from src.DialogueState import *
@@ -36,8 +37,34 @@ class Game:
         # dialogue state
         self.state = DialogueState(self.save, self.X1, self.X2, self.Y1, self.display)
 
+    def create_file(self):
+        pass
+
     def load(self) -> dict:
-        return {}
+        """ Loading attributes from save file. """
+        # opening save file
+        try:
+            file = open(path.join('save', 'save.txt'))
+        except FileNotFoundError:
+            file = self.create_file()  # TODO - create file
+        # trying to read and split lines
+        try:
+            lines = file.read().splitlines()
+        except OSError:
+            file = self.create_file()  # TODO - create file
+            lines = file.read().splitlines()
+        # storing attributes
+        save = {}
+        for line in lines:
+            # trying to find equals separator
+            try:
+                sep = line.index('=')
+            except ValueError:
+                raise ValueError('Save malformed.')
+            # store attribute
+            save[line[:sep]] = line[sep + 1:]
+
+        return save
 
     def main(self):
         """ Initiates the main game loop. """
