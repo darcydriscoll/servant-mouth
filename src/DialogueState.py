@@ -278,10 +278,9 @@ class DialogueState:
                 # phrase selected
                 phrase.known = True
                 self.hovered_phrase = None
+                self.reset_pos()
                 self.new_xml(phrase.xml)
                 self.xml_changed = True
-                # resetting colour
-                # self.reset_phrase()
             else:
                 # phrase selection failed - resetting
                 self.reset_phrase()
