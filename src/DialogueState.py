@@ -34,16 +34,17 @@ class DialogueState:
         :param x2: Second x-point of the dialogue window.
         :param y1: First y-point of the dialogue window.
         """
-        self.root = None
+        # loading
+        self.save = save  # state of play variables
+        self.load()
+        # display and animation
         self.screens = []  # all 'screen' ET.Elements in the current tree
         self.para_groups = []  # CharacterGroups
-        self.save = save  # state of play variables
         self.display = display
-        self.millis_since = None  # milliseconds since the last character blit
-        # display and animation
         self.speed = 30
         self.show_debug = False
         self.animating = True
+        self.millis_since = None  # milliseconds since the last character blit
         # phrases
         self.highlights = []
         self.hovered_phrase = None
@@ -57,18 +58,25 @@ class DialogueState:
         self.p = 0  # paragraph
         self.s = 0  # screen
         # states
+        self.root = None
         self.xml = 'test2'
         self.xml_changed = False
         # logging
         log.basicConfig(stream=sys.stderr, level=log.DEBUG)
 
-        self.load(save)
         self.new_xml(self.xml)
         return
 
-    def load(self, save: dict):
-        """ Sets variables based on the given save dictionary. """
-        pass
+    def load(self):
+        """ Sets variables based on the save dictionary self.save. """
+        try:
+            self.xml = self.save['xml']
+            screen = self.save['screen']
+            para = self.save['para']
+        except KeyError:
+            log.error('XML, screen, para save vars are nonexistent')
+            pass  # TODO - malformed
+        # TODO
 
     def new_xml(self, name: str) -> bool:
         """

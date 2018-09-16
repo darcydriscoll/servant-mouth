@@ -1,2 +1,4 @@
-place=test2/0/0
+xml=test2
+screen=0
+para=0
 horace=1
