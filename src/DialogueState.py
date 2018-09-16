@@ -34,9 +34,6 @@ class DialogueState:
         :param x2: Second x-point of the dialogue window.
         :param y1: First y-point of the dialogue window.
         """
-        # loading
-        self.save = save  # state of play variables
-        self.load()
         # display and animation
         self.screens = []  # all 'screen' ET.Elements in the current tree
         self.para_groups = []  # CharacterGroups
@@ -59,24 +56,29 @@ class DialogueState:
         self.s = 0  # screen
         # states
         self.root = None
-        self.xml = 'test2'
+        self.xml = None
         self.xml_changed = False
+        # loading
+        self.save = save  # state of play variables
+        self.load()
         # logging
         log.basicConfig(stream=sys.stderr, level=log.DEBUG)
-
-        self.new_xml(self.xml)
-        return
 
     def load(self):
         """ Sets variables based on the save dictionary self.save. """
         try:
-            self.xml = self.save['xml']
+            xml = self.save['xml']
             screen = self.save['screen']
             para = self.save['para']
         except KeyError:
             log.error('XML, screen, para save vars are nonexistent')
-            pass  # TODO - malformed
-        # TODO
+            pass  # TODO - xml malformed - send to start
+        # setting position
+        self.s = int(screen)
+        self.new_xml(xml)
+        self.p = int(para)
+        for para in self.para_groups[:self.p + 1]:
+            para.max_index()
 
     def new_xml(self, name: str) -> bool:
         """
@@ -89,7 +91,6 @@ class DialogueState:
             self.screens = self.root.find('screens').findall('screen')
             self.create_para_groups()
             # setting vars
-            self.s = 0
             self.highlights = []
             self.xml = name
             return True
@@ -197,6 +198,9 @@ class DialogueState:
             para_offset = top + text_height / 2
 
         self.para_groups = new_paragraph_groups
+
+    def reset_pos(self):
+        self.s = 0
         self.p = 0
 
     def next_screen(self):
