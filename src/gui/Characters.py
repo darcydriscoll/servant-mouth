@@ -168,7 +168,7 @@ class Phrase(pygame.sprite.Group):
         self.start = start
         self.end = end
         # states
-        self.known = False
+        self.known = True
         # colour
         self.base_colour = (0, 0, 255)
         self.colour = self.base_colour
