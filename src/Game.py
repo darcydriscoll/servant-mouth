@@ -5,7 +5,7 @@
 
 from pygame import K_RETURN, K_SPACE
 import pygame.freetype
-from os import path
+from os import path, remove, rename
 
 from src.Mouse import MouseState
 from src.DialogueState import *
@@ -30,12 +30,12 @@ class Game:
 
     def __init__(self):
         """ Initialises everything for the first time. """
-        self.save = self.load()
+        self.savefile = self.load()
         # display
         self.display = pygame.display.set_mode(self.WH)
         self.clock = pygame.time.Clock()
         # dialogue state
-        self.state = DialogueState(self.save, self.X1, self.X2, self.Y1, self.display)
+        self.state = DialogueState(self.savefile, self.X1, self.X2, self.Y1, self.display)
 
     def create_file(self):
         pass
@@ -53,6 +53,7 @@ class Game:
         except OSError:
             file = self.create_file()  # TODO - create file
             lines = file.read().splitlines()
+        file.close()
         # storing attributes
         save = {}
         for line in lines:
@@ -65,6 +66,20 @@ class Game:
             save[line[:sep]] = line[sep + 1:]
 
         return save
+
+    def save(self):
+        """ Writes self.save to a new save file. """
+        # generate lines
+        lines = []
+        for item in self.savefile.items():
+            lines.append(item[0] + '=' + item[1] + '\n')
+        # write to new save
+        new_save = open(path.join('save', 'savetemp.txt'), 'w+')
+        new_save.writelines(lines)
+        new_save.close()
+        # delete old and rename new
+        remove(path.join('save', 'save.txt'))
+        rename(path.join('save', 'savetemp.txt'), path.join('save', 'save.txt'))
 
     def main(self):
         """ Initiates the main game loop. """
@@ -100,6 +115,8 @@ class Game:
             elif e.type == pygame.KEYUP:
                 if e.key == K_RETURN or e.key == K_SPACE:
                     self.dialogue_progression()
+                if e.key == pygame.K_s:
+                    self.save()
             # mouse
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 self.mouse_events(MouseState.DOWN)
