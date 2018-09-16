@@ -51,9 +51,8 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.flip()
 
-    def mouse_events(self, mousestate):
-        coord = pygame.mouse.get_pos()
-        self.state.mouse_events(coord, mousestate)
+    def mouse_events(self, coord, mousedown):
+        self.state.mouse_events(coord, mousedown)
 
     def event_handling(self):
         """ Main event handling function. Handles top-level events and calls to other event functions. """
@@ -62,13 +61,8 @@ class Game:
             if e.type == pygame.QUIT:
                 sys.exit()
             # keys
-            # mouse
-            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                self.mouse_events(1)
-            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
-                self.mouse_events(2)
-            else:
-                self.mouse_events(0)
+        coord = pygame.mouse.get_pos()
+        self.mouse_events(coord, pygame.mouse.get_pressed()[0])
 
     def update(self):
         """ Updates the states of everything. """

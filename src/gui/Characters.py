@@ -99,8 +99,8 @@ class GroupCharacters(pygame.sprite.Group):
         self.pause_punctuation = True  # whether we should pause if this is punctuation
         # states
         self.animating = True
-        self.phrase_hovered = None
-        self.phrase_selected = None
+        self.hovered_phrase = None
+        self.selected_phrase = None
         # sound
         self.sound = pygame.mixer.Sound(path.join('assets', 'sound', 'sfx', 'cowbell-short.ogg'))
         self.sound.set_volume(0.1)
@@ -110,16 +110,6 @@ class GroupCharacters(pygame.sprite.Group):
 
     def play_sound(self):
         self.sound.play()
-
-    def blit_highlights(self):
-        for h in self.highlights:
-            self.display.blit(h[0], h[1])
-
-    def draw_highlight(self):
-        pass
-
-    def is_phrase_collision(self):
-        pass
 
     def update(self, millis_since):
         """
@@ -164,19 +154,64 @@ class GroupCharacters(pygame.sprite.Group):
 
         return millis
 
-    def mouse_events(self, coord, mousestate):
+    def mouse_events(self, coord, mousestate) -> bool:
         # phrases
         for ch in self:
-            if ch.rect.collidepoint(coord):
-                self.phrase_selection(mousestate)
-                break
+            if ch.phrase is not None and ch.rect.collidepoint(coord):
+                self.phrase_interaction(mousestate, ch)
+                return True
+        return False
 
-    def phrase_hovering(self):
-        pass
+    def blit_highlights(self):
+        """ Blits each highlight in highlights. """
+        for h in self.highlights:
+            self.display.blit(h[0], h[1])
 
-    def phrase_selection(self, mousestate):
-        self.phrase_hovering()
-        # selection
+    def draw_highlight(self, top_left, bottom_right, colour):
+        """ Returns the surface and rectangle for a given highlight. """
+        x = bottom_right[0] - top_left[0]
+        y = bottom_right[1] - top_left[1]
+        surf = pygame.Surface((x, y))
+        surf.fill(colour)
+        return surf, surf.get_rect(topleft=top_left)
+
+    def phrase_hovering(self, ch):
+        """ Renders the highlights for the phrase associated with a Character. """
+        phrase = ch.phrase
+        if self.hovered_phrase != phrase:
+            self.hovered_phrase = phrase
+            if self.hovered_phrase.known:
+                self.highlights = []
+                sprites = phrase.sprites()
+                top_left = sprites[0].rect.topleft
+                bottom_right = sprites[0].rect.bottomright
+                line = sprites[0].line
+                for s in sprites[1:]:
+                    if s.line > line:
+                        # append highlight
+                        highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
+                        self.highlights.append(highlight)
+                        # resetting/updating vars
+                        line = s.line
+                        top_left = s.rect.topleft
+                    bottom_right = s.rect.bottomright
+                # append final highlight
+                highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
+                self.highlights.append(highlight)
+
+    def phrase_selection(self, mousedown, ch):
+        if mousedown:
+            # colour
+            if self.selected_phrase is not None:
+                self.selected_phrase.colour = self.selected_phrase.base_colour
+            self.selected_phrase = ch.phrase
+            self.selected_phrase.colour = (0, 255, 0)
+        else:
+            pass
+
+    def phrase_interaction(self, mousedown, ch):
+        self.phrase_hovering(ch)
+        self.phrase_selection(mousedown, ch)
 
     def blit(self):
         # characters
@@ -191,6 +226,7 @@ class Phrase(pygame.sprite.Group):
         self.start = start
         self.end = end
         # states
-        self.known = False
+        self.known = True
         # colour
-        self.colour = (0, 0, 255)
+        self.base_colour = (0, 0, 255)
+        self.colour = self.base_colour

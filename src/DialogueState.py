@@ -43,6 +43,7 @@ class DialogueState:
         self.speed = 30
         self.show_debug = False
         self.animating = True
+        self.phrase_selected = False
         # character positioning
         self.PAD = 10
         self.LEFT_OFFSET = x1 + self.PAD
@@ -178,10 +179,10 @@ class DialogueState:
             self.millis_since = para.update(self.millis_since)
         self.animating = self.para_groups[self.p].animating
 
-    def mouse_events(self, coord, mousestate):
+    def mouse_events(self, coord, mousedown):
         if not self.animating:
             for para in self.para_groups[:self.p + 1]:
-                para.mouse_events(coord, mousestate)
+                self.phrase_selected = para.mouse_events(coord, mousedown)
 
     def debug_blits(self):
         if self.show_debug:
@@ -189,10 +190,14 @@ class DialogueState:
 
     def blit(self):
         """ Blit all currently on-screen paragraphs and their characters. """
+        # phrase highlights
+        if self.phrase_selected:
+            for p in self.para_groups:
+                p.blit_highlights()
         # characters
         for para in self.para_groups[:self.p + 1]:
             for ch in para.sprites()[:para.i + 1]:
                 ch.blit()
-        self.debug_blits()
         # debug
+        self.debug_blits()
         # TODO - phrases
