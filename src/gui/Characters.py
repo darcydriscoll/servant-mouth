@@ -99,8 +99,6 @@ class GroupCharacters(pygame.sprite.Group):
         self.pause_punctuation = True  # whether we should pause if this is punctuation
         # states
         self.animating = True
-        self.hovered_phrase = None
-        self.selected_phrase = None
         # sound
         self.sound = pygame.mixer.Sound(path.join('assets', 'sound', 'sfx', 'cowbell-short.ogg'))
         self.sound.set_volume(0.1)
@@ -110,6 +108,10 @@ class GroupCharacters(pygame.sprite.Group):
 
     def play_sound(self):
         self.sound.play()
+
+    def max_index(self):
+        """ Sets the index to refer to the last Character. """
+        self.i = len(self) - 1
 
     def update(self, millis_since):
         """
@@ -140,78 +142,18 @@ class GroupCharacters(pygame.sprite.Group):
                             self.speed += 150  # TODO - should be different depending on punctuation mark
                             break  # so we pause w/o animating any more characters
                 except IndexError:
-                    pass
+                    self.max_index()
                 # sound
                 if not self.skip:
                     self.sound.play()
                 self.skip = not self.skip
 
                 millis = current_millis
-        # no more animation - now phrase selection
+        # no more animation
         else:
             self.animating = False
-            millis = current_millis
 
         return millis
-
-    def mouse_events(self, coord, mousestate) -> bool:
-        # phrases
-        for ch in self:
-            if ch.phrase is not None and ch.rect.collidepoint(coord):
-                self.phrase_interaction(mousestate, ch)
-                return True
-        return False
-
-    def blit_highlights(self):
-        """ Blits each highlight in highlights. """
-        for h in self.highlights:
-            self.display.blit(h[0], h[1])
-
-    def draw_highlight(self, top_left, bottom_right, colour):
-        """ Returns the surface and rectangle for a given highlight. """
-        x = bottom_right[0] - top_left[0]
-        y = bottom_right[1] - top_left[1]
-        surf = pygame.Surface((x, y))
-        surf.fill(colour)
-        return surf, surf.get_rect(topleft=top_left)
-
-    def phrase_hovering(self, ch):
-        """ Renders the highlights for the phrase associated with a Character. """
-        phrase = ch.phrase
-        if self.hovered_phrase != phrase:
-            self.hovered_phrase = phrase
-            if self.hovered_phrase.known:
-                self.highlights = []
-                sprites = phrase.sprites()
-                top_left = sprites[0].rect.topleft
-                bottom_right = sprites[0].rect.bottomright
-                line = sprites[0].line
-                for s in sprites[1:]:
-                    if s.line > line:
-                        # append highlight
-                        highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
-                        self.highlights.append(highlight)
-                        # resetting/updating vars
-                        line = s.line
-                        top_left = s.rect.topleft
-                    bottom_right = s.rect.bottomright
-                # append final highlight
-                highlight = self.draw_highlight(top_left, bottom_right, phrase.colour)
-                self.highlights.append(highlight)
-
-    def phrase_selection(self, mousedown, ch):
-        if mousedown:
-            # colour
-            if self.selected_phrase is not None:
-                self.selected_phrase.colour = self.selected_phrase.base_colour
-            self.selected_phrase = ch.phrase
-            self.selected_phrase.colour = (0, 255, 0)
-        else:
-            pass
-
-    def phrase_interaction(self, mousedown, ch):
-        self.phrase_hovering(ch)
-        self.phrase_selection(mousedown, ch)
 
     def blit(self):
         # characters
@@ -220,13 +162,18 @@ class GroupCharacters(pygame.sprite.Group):
 
 
 class Phrase(pygame.sprite.Group):
-    def __init__(self, start, end):
+    def __init__(self, start, end, xml: str):
         super().__init__()
         # bounds
         self.start = start
         self.end = end
         # states
-        self.known = True
+        self.known = False
         # colour
         self.base_colour = (0, 0, 255)
+        self.colour = self.base_colour
+        # load xml
+        self.xml = xml
+
+    def reset_colour(self):
         self.colour = self.base_colour

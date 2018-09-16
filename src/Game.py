@@ -3,8 +3,10 @@
 # By snarlinger (@gmail.com)
 # Released under an MIT license
 
-import pygame
+from pygame import K_RETURN, K_SPACE
 import pygame.freetype
+
+from src.Mouse import MouseState
 from src.DialogueState import *
 
 pygame.init()
@@ -24,9 +26,6 @@ class Game:
     Y2 = WH[1] - Y_OFFSET
     POINTLIST = [(X1, Y1), (X2, Y1), (X2, Y2), (X1, Y2)]
     BOXWIDTH = 1
-    # key constants
-    KEY_ENTER = pygame.K_RETURN
-    KEY_SPACE = pygame.K_SPACE
 
     def __init__(self):
         """ Initialises everything for the first time. """
@@ -42,7 +41,7 @@ class Game:
 
     def main(self):
         """ Initiates the main game loop. """
-        self.state.millis_since = pygame.time.get_ticks()
+        self.state.update_millis_since()
         while True:
             self.event_handling()
             self.update()
@@ -51,18 +50,46 @@ class Game:
             self.clock.tick(self.FPS)
             pygame.display.flip()
 
-    def mouse_events(self, coord, mousedown):
-        self.state.mouse_events(coord, mousedown)
+    def mouse_events(self, mousestate: MouseState):
+        coord = pygame.mouse.get_pos()
+        self.state.mouse_events(coord, mousestate)
+
+    def dialogue_progression(self):
+        """ Handles dialogue progression. """
+        if self.state.animating:
+            # if we're still animating, skip animation
+            self.state.para_groups[self.state.p].max_index()
+        else:
+            self.state.next_paragraph()
 
     def event_handling(self):
         """ Main event handling function. Handles top-level events and calls to other event functions. """
+        mouse_click = False
         for e in pygame.event.get():
             # quit
             if e.type == pygame.QUIT:
                 sys.exit()
             # keys
-        coord = pygame.mouse.get_pos()
-        self.mouse_events(coord, pygame.mouse.get_pressed()[0])
+            elif e.type == pygame.KEYUP:
+                if e.key == K_RETURN or e.key == K_SPACE:
+                    self.dialogue_progression()
+            # mouse
+            elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+                self.mouse_events(MouseState.DOWN)
+                mouse_click = True
+            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
+                self.mouse_events(MouseState.UP)
+                if not self.state.xml_changed:
+                    self.dialogue_progression()
+                else:
+                    self.state.xml_changed = False
+                mouse_click = True
+        # button held after MOUSEBUTTONDOWN or not held at all
+        if not mouse_click:
+            if pygame.mouse.get_pressed()[0]:
+                self.mouse_events(MouseState.HELD)
+            else:
+                self.mouse_events(MouseState.NONE)
 
     def update(self):
         """ Updates the states of everything. """

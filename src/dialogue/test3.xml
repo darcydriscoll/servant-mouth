@@ -8,9 +8,8 @@
         <screen>
             <para>
                 <phrasestart>
-                    <phraseload>test3</phraseload>
                 </phrasestart>
-                <content>This is a phrase.</content>
+                <content>This phrase is EPIC...</content>
                 <phraseend/>
                 <content> This is not a phrase. This is just content. The last word in this sentence, however, is a </content>
                 <phrasestart></phrasestart>
