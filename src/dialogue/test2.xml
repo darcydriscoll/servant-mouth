@@ -1,12 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!--Test-->
 <root>
-    <definitions>
-        <var name='horace'>0</var>
-    </definitions>
     <screens>
         <screen>
             <para>
+                <set var="horace" value="1"/>
                 <phrasestart>
                     <phraseload>test3</phraseload>
                 </phrasestart>

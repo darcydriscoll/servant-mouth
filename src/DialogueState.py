@@ -127,12 +127,22 @@ class DialogueState:
                     text += el.text
                 elif tag == 'if':
                     try:
+                        # we allow an absence of the variable in the save file
                         condition = self.save.get(el.attrib['var']) == el.attrib['value']
                     except KeyError:
-                        raise KeyError('xml conditional malformed.')
+                        raise KeyError(self.xml + ' conditional malformed. screen: ' + str(self.s))
                     if condition:
                         phrases, i, text, phrase_start, phrase_xml = \
                             recurse(phrases, i, text, phrase_start, phrase_xml, el.findall('*'))
+                elif tag == 'set':
+                    # getting var and value
+                    try:
+                        key = el.attrib['var']
+                        value = el.attrib['value']
+                    except KeyError:
+                        raise KeyError()
+                    # setting
+                    self.save[key] = value
                 else:
                     raise ValueError('Unsupported tag', tag, el)
             return phrases, i, text, phrase_start, phrase_xml
